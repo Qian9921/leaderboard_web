@@ -31,32 +31,40 @@ export default function UploadModal({
 
     try {
       const data = JSON.parse(jsonData);
-
-      const response = await fetch("/api/upload", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          type: leaderboardType,
-          data,
-        }),
-      });
-
-      const result = await response.json();
-
-      if (result.success) {
-        setUploadStatus("success");
-        setTimeout(() => {
-          onUploadSuccess();
-          onClose();
-          setJsonData("");
-          setUploadStatus("idle");
-        }, 1500);
-      } else {
-        setUploadStatus("error");
-        setErrorMessage(result.error || "Upload failed");
+      
+      // Validate required fields
+      if (!data.studentId || !data.studentName || !data.githubUsername) {
+        throw new Error("Missing required fields: studentId, studentName, githubUsername");
       }
+      
+      // Add submission date
+      data.submissionDate = new Date().toISOString();
+      
+      // Store in localStorage (temporary for static site)
+      const storageKey = `leaderboard_${leaderboardType}`;
+      const existing = localStorage.getItem(storageKey);
+      const existingData = existing ? JSON.parse(existing) : [];
+      
+      // Check if student already submitted
+      const existingIndex = existingData.findIndex(
+        (entry: any) => entry.studentId === data.studentId
+      );
+      
+      if (existingIndex >= 0) {
+        existingData[existingIndex] = data;
+      } else {
+        existingData.push(data);
+      }
+      
+      localStorage.setItem(storageKey, JSON.stringify(existingData));
+      
+      setUploadStatus("success");
+      setTimeout(() => {
+        onUploadSuccess();
+        onClose();
+        setJsonData("");
+        setUploadStatus("idle");
+      }, 1500);
     } catch (error) {
       setUploadStatus("error");
       setErrorMessage(

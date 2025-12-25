@@ -21,12 +21,39 @@ export default function Home() {
   const fetchLeaderboard = async (type: LeaderboardType) => {
     setIsLoading(true);
     try {
-      const response = await fetch(`/api/leaderboard/${type}`);
-      const result = await response.json();
-      if (result.success) {
-        setLeaderboardData(result.data);
-        setLastUpdated(result.lastUpdated);
+      const basePath = process.env.NODE_ENV === 'production' ? '/leaderboard_web' : '';
+      const response = await fetch(`${basePath}/data/${type}.json`);
+      let data = await response.json();
+      
+      // Merge with localStorage data (for user uploads)
+      const storageKey = `leaderboard_${type}`;
+      const localData = localStorage.getItem(storageKey);
+      if (localData) {
+        const localEntries = JSON.parse(localData);
+        // Merge, preferring local data for same studentId
+        const studentIds = new Set(localEntries.map((e: any) => e.studentId));
+        data = [
+          ...localEntries,
+          ...data.filter((e: any) => !studentIds.has(e.studentId))
+        ];
       }
+      
+      // Calculate ranks
+      const config = leaderboardConfigs[type];
+      const primaryMetric = config.metrics[0];
+      const rankedData = data
+        .sort((a: any, b: any) => {
+          const aVal = a[primaryMetric.key];
+          const bVal = b[primaryMetric.key];
+          return primaryMetric.higherIsBetter ? bVal - aVal : aVal - bVal;
+        })
+        .map((entry: any, index: number) => ({
+          ...entry,
+          rank: index + 1,
+        }));
+      
+      setLeaderboardData(rankedData);
+      setLastUpdated(new Date().toISOString());
     } catch (error) {
       console.error("Failed to fetch leaderboard:", error);
     } finally {

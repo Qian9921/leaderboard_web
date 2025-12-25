@@ -1,0 +1,52 @@
+[
+  {
+    "studentId": "20240003",
+    "studentName": "Charlie Li",
+    "githubUsername": "charlie-li",
+    "submissionDate": "2024-12-20T11:00:00Z",
+    "ate": 0.025,
+    "rpe": 0.018,
+    "trackingSuccess": 0.95,
+    "fps": 28
+  },
+  {
+    "studentId": "20240004",
+    "studentName": "Diana Zhang",
+    "githubUsername": "diana-zhang",
+    "submissionDate": "2024-12-21T10:30:00Z",
+    "ate": 0.018,
+    "rpe": 0.012,
+    "trackingSuccess": 0.98,
+    "fps": 32
+  },
+  {
+    "studentId": "20240009",
+    "studentName": "Ivan Yang",
+    "githubUsername": "ivan-yang",
+    "submissionDate": "2024-12-22T14:20:00Z",
+    "ate": 0.030,
+    "rpe": 0.022,
+    "trackingSuccess": 0.92,
+    "fps": 25
+  },
+  {
+    "studentId": "20240010",
+    "studentName": "Julia Kim",
+    "githubUsername": "julia-kim",
+    "submissionDate": "2024-12-23T09:50:00Z",
+    "ate": 0.015,
+    "rpe": 0.010,
+    "trackingSuccess": 0.99,
+    "fps": 35
+  },
+  {
+    "studentId": "20240011",
+    "studentName": "Kevin Park",
+    "githubUsername": "kevin-park",
+    "submissionDate": "2024-12-24T16:15:00Z",
+    "ate": 0.022,
+    "rpe": 0.015,
+    "trackingSuccess": 0.96,
+    "fps": 30
+  }
+]
