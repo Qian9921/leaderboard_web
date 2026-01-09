@@ -11,7 +11,7 @@ import { leaderboardConfigs } from "@/lib/leaderboard-config";
 import { cn } from "@/lib/utils";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<LeaderboardType>("opensplat");
+  const [activeTab, setActiveTab] = useState<LeaderboardType>("unet");
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);

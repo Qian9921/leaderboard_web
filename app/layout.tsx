@@ -3,7 +3,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "AAE5303 Leaderboard",
-  description: "AAE5303 Course Project Leaderboard System - OpenSplat, UNet, ORB-SLAM3",
+  description: "AAE5303 Course Project Leaderboard System - UNet, ORB-SLAM3",
 };
 
 export default function RootLayout({

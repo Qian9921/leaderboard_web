@@ -37,9 +37,7 @@ git remote add origin https://github.com/YOUR_USERNAME/leaderboard_web.git
 git push -u origin main
 ```
 
-If prompted for credentials, use your GitHub username and personal access token:
-- Username: Your GitHub username
-- Password: Your GitHub Personal Access Token (with repo permissions)
+If prompted for credentials, use your GitHub username and personal access token.
 
 ### Step 4: Enable GitHub Pages
 
@@ -83,6 +81,66 @@ git push
 
 3. GitHub Actions will automatically rebuild and deploy
 
+## 📊 Updating Data Files
+
+### UNet Leaderboard
+
+Edit `public/data/unet.json`:
+
+```json
+[
+  {
+    "studentId": "20240001",
+    "studentName": "Alice Chen",
+    "githubUsername": "alice-chen",
+    "submissionDate": "2024-12-20T10:30:00Z",
+    "iou": 0.78,
+    "diceScore": 0.85,
+    "accuracy": 0.92,
+    "inferenceTime": 45
+  },
+  {
+    "studentId": "20240002",
+    "studentName": "Bob Wang",
+    "githubUsername": "bob-wang",
+    "submissionDate": "2024-12-21T14:20:00Z",
+    "iou": 0.82,
+    "diceScore": 0.88,
+    "accuracy": 0.94,
+    "inferenceTime": 38
+  }
+]
+```
+
+### ORB-SLAM3 Leaderboard
+
+Edit `public/data/orbslam3.json`:
+
+```json
+[
+  {
+    "studentId": "20240001",
+    "studentName": "Alice Chen",
+    "githubUsername": "alice-chen",
+    "submissionDate": "2024-12-20T11:00:00Z",
+    "ate": 0.025,
+    "rpe": 0.018,
+    "trackingSuccess": 0.95,
+    "fps": 28
+  },
+  {
+    "studentId": "20240002",
+    "studentName": "Bob Wang",
+    "githubUsername": "bob-wang",
+    "submissionDate": "2024-12-21T10:30:00Z",
+    "ate": 0.018,
+    "rpe": 0.012,
+    "trackingSuccess": 0.98,
+    "fps": 32
+  }
+]
+```
+
 ## 🛠️ Troubleshooting
 
 ### Repository Name Mismatch
@@ -116,37 +174,12 @@ If CSS/JS files don't load:
 2. Ensure `.nojekyll` file exists in the `public` folder
 3. Rebuild and push again
 
-## 📊 Updating Data
-
-To add or update student submissions:
-
-### Method 1: Direct File Edit
-
-1. Edit the JSON files in the `data/` folder:
-   - `data/opensplat.json`
-   - `data/unet.json`
-   - `data/orbslam3.json`
-
-2. Commit and push:
-
-```bash
-git add data/
-git commit -m "Update leaderboard data"
-git push
-```
-
-### Method 2: Use Upload Interface
-
-Visit your deployed site and use the "Upload Submission" button.
-
-**Note**: For GitHub Pages static deployment, the upload feature stores data in browser localStorage temporarily. For persistent uploads, you'll need a backend server.
-
 ## 🔐 Security Note
 
-The GitHub token provided should be kept secure:
+Keep your GitHub token secure:
 - Don't commit it to your repository
-- Use it only for authentication when pushing
-- Consider using SSH keys for future pushes
+- Use SSH keys for easier authentication
+- Rotate tokens periodically
 
 ## 🌐 Custom Domain (Optional)
 
@@ -175,11 +208,10 @@ Visit `http://localhost:3000` to preview the production build.
 - [ ] GitHub Pages enabled with **GitHub Actions** source
 - [ ] Deployment workflow completed successfully
 - [ ] Site accessible at GitHub Pages URL
-- [ ] All three leaderboards displaying correctly
+- [ ] Both leaderboards displaying correctly
 - [ ] Sorting functionality working
 - [ ] Responsive design working on mobile
 
 ---
 
 **Your leaderboard is now live! 🎉**
-

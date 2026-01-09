@@ -14,8 +14,7 @@ git push -u origin main
 ```
 
 **Authentication**:
-- Username: `YOUR_GITHUB_USERNAME`
-- Password: Your GitHub Personal Access Token (Settings → Developer settings → Personal access tokens)
+- Use your GitHub username and personal access token
 
 ### 2. Enable GitHub Pages
 
@@ -38,7 +37,43 @@ https://YOUR_USERNAME.github.io/leaderboard_web/
 
 ## Update Data (Anytime)
 
-Edit `data/*.json` files, then:
+### Method 1: Edit JSON Files Directly
+
+**UNet (`public/data/unet.json`):**
+
+```json
+[
+  {
+    "studentId": "20240001",
+    "studentName": "Alice Chen",
+    "githubUsername": "alice-chen",
+    "submissionDate": "2024-12-20T10:30:00Z",
+    "iou": 0.78,
+    "diceScore": 0.85,
+    "accuracy": 0.92,
+    "inferenceTime": 45
+  }
+]
+```
+
+**ORB-SLAM3 (`public/data/orbslam3.json`):**
+
+```json
+[
+  {
+    "studentId": "20240001",
+    "studentName": "Alice Chen",
+    "githubUsername": "alice-chen",
+    "submissionDate": "2024-12-20T11:00:00Z",
+    "ate": 0.025,
+    "rpe": 0.018,
+    "trackingSuccess": 0.95,
+    "fps": 28
+  }
+]
+```
+
+Then push:
 
 ```bash
 git add .
@@ -65,5 +100,26 @@ assetPrefix: '/YOUR_ACTUAL_REPO_NAME/',
 
 ---
 
-**That's it! Your leaderboard is live! 🎉**
+## JSON Field Reference
 
+### Required Fields (Both Leaderboards)
+- `studentId`: Student ID (e.g., "20240001")
+- `studentName`: Full name (e.g., "Alice Chen")
+- `githubUsername`: GitHub username (e.g., "alice-chen")
+- `submissionDate`: ISO timestamp (e.g., "2024-12-20T10:30:00Z")
+
+### UNet Specific Fields
+- `iou`: 0-1 (higher better)
+- `diceScore`: 0-1 (higher better)
+- `accuracy`: 0-1 (higher better)
+- `inferenceTime`: milliseconds (lower better)
+
+### ORB-SLAM3 Specific Fields
+- `ate`: meters (lower better)
+- `rpe`: ratio (lower better)
+- `trackingSuccess`: 0-1 (higher better)
+- `fps`: frames/second (higher better)
+
+---
+
+**That's it! Your leaderboard is live! 🎉**

@@ -2,39 +2,6 @@ import { LeaderboardConfig } from "./types";
 import { formatNumber, formatPercentage, formatTime } from "./utils";
 
 export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
-  opensplat: {
-    type: "opensplat",
-    title: "OpenSplat 3D Reconstruction",
-    description: "3D scene reconstruction quality evaluation using Gaussian Splatting",
-    metrics: [
-      {
-        key: "psnr",
-        label: "PSNR",
-        unit: "dB",
-        higherIsBetter: true,
-        format: (v) => formatNumber(v, 2),
-      },
-      {
-        key: "ssim",
-        label: "SSIM",
-        higherIsBetter: true,
-        format: (v) => formatNumber(v, 3),
-      },
-      {
-        key: "lpips",
-        label: "LPIPS",
-        higherIsBetter: false,
-        format: (v) => formatNumber(v, 3),
-      },
-      {
-        key: "renderTime",
-        label: "Render Time",
-        unit: "s",
-        higherIsBetter: false,
-        format: (v) => formatNumber(v, 2),
-      },
-    ],
-  },
   unet: {
     type: "unet",
     title: "UNet Image Segmentation",

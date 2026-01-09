@@ -1,6 +1,6 @@
 // Leaderboard entry types for different competitions
 
-export type LeaderboardType = 'opensplat' | 'unet' | 'orbslam3';
+export type LeaderboardType = 'unet' | 'orbslam3';
 
 // Base interface for all leaderboard entries
 export interface BaseLeaderboardEntry {

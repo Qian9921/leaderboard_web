@@ -10,7 +10,6 @@ interface LeaderboardTabsProps {
 }
 
 const tabs: { id: LeaderboardType; label: string; icon: string }[] = [
-  { id: "opensplat", label: "OpenSplat 3D", icon: "🎨" },
   { id: "unet", label: "UNet Segmentation", icon: "🧠" },
   { id: "orbslam3", label: "ORB-SLAM3", icon: "🗺️" },
 ];
