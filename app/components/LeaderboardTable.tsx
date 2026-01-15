@@ -101,7 +101,9 @@ export default function LeaderboardTable({
     );
     if (!confirmed) return;
 
-    const deleteKey = window.prompt("Enter delete key to remove this submission:");
+    const deleteKeyRaw = window.prompt("Enter delete key to remove this submission:");
+    if (!deleteKeyRaw) return;
+    const deleteKey = deleteKeyRaw.trim();
     if (!deleteKey) return;
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
