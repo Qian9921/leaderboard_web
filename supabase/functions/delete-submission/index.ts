@@ -59,8 +59,10 @@ serve(async (req) => {
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
+    console.error("Unhandled error:", err);
+    const message = err instanceof Error ? err.message : "Unexpected error.";
     return new Response(
-      JSON.stringify({ error: "Unexpected error." }),
+      JSON.stringify({ error: message }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }

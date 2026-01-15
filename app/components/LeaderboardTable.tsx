@@ -119,6 +119,7 @@ export default function LeaderboardTable({
         headers: {
           "Content-Type": "application/json",
           Authorization: `Bearer ${anonKey}`,
+          apikey: anonKey,
         },
         body: JSON.stringify({
           leaderboard_type: leaderboardType,
@@ -129,7 +130,8 @@ export default function LeaderboardTable({
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
-        throw new Error(payload?.error || "Delete failed.");
+        const message = payload?.error || "Delete failed.";
+        throw new Error(message);
       }
 
       onDeleteSuccess?.();
