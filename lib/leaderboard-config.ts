@@ -5,7 +5,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
   unet: {
     type: "unet",
     title: "Project: Semantic Segmentation (UNet)",
-    description: "UAVScenes HKisland · Test set (204 images)",
+    description: "UAVScenes AMtown02 (interval=5)",
     metrics: [
       {
         key: "miou",
@@ -33,7 +33,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
   orbslam3: {
     type: "orbslam3",
     title: "Project: Visual Odometry (ORB-SLAM3)",
-    description: "MARS-LVIG · AMtown sequence · Sim(3) alignment + scale correction",
+    description: "MARS-LVIG (AMtown02) · Sim(3) alignment + scale correction",
     metrics: [
       {
         key: "ate_rmse_m",

@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { getSupabaseClient } from "@/lib/supabase";
 
 export default function Home() {
-  const [activeTab, setActiveTab] = useState<LeaderboardType>("unet");
+  const [activeTab, setActiveTab] = useState<LeaderboardType>("orbslam3");
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
@@ -51,12 +51,12 @@ export default function Home() {
   const config = leaderboardConfigs[activeTab];
 
   return (
-    <div className="min-h-screen p-4 md:p-10">
+    <div className="min-h-screen px-4 py-10 md:px-10 lg:px-14 lg:py-14">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="max-w-7xl mx-auto mb-8"
+        className="max-w-6xl mx-auto mb-12"
       >
         <div className="text-center mb-10">
           <motion.div
@@ -65,17 +65,17 @@ export default function Home() {
             transition={{ type: "spring", stiffness: 200 }}
             className="inline-flex items-center justify-center gap-3 mb-5"
           >
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 dark:bg-white/10 shadow-lg ring-1 ring-black/5">
-              <GraduationCap size={28} className="text-violet-600 dark:text-violet-300" />
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 dark:bg-white/10 shadow-sm ring-1 ring-black/5">
+              <GraduationCap size={26} className="text-indigo-600 dark:text-indigo-300" />
             </span>
-            <span className="inline-flex h-14 w-14 items-center justify-center rounded-2xl bg-white/70 dark:bg-white/10 shadow-lg ring-1 ring-black/5">
-              <Trophy size={28} className="text-amber-500 animate-bounce-subtle" />
+            <span className="inline-flex h-12 w-12 items-center justify-center rounded-2xl bg-white/95 dark:bg-white/10 shadow-sm ring-1 ring-black/5">
+              <Trophy size={26} className="text-amber-500 animate-bounce-subtle" />
             </span>
           </motion.div>
-          <h1 className="text-4xl md:text-6xl font-extrabold bg-gradient-to-r from-violet-700 via-fuchsia-600 to-sky-600 bg-clip-text text-transparent mb-3">
+          <h1 className="text-4xl md:text-6xl font-semibold text-gray-900 dark:text-white mb-3 tracking-tight">
             AAE5303 - Robust Control Technology in Low-Altitude Aerial Vehicle
           </h1>
-          <div className="text-gray-700/80 dark:text-gray-300/80 text-base md:text-lg space-y-1">
+          <div className="text-gray-600 dark:text-gray-300 text-base md:text-lg space-y-1">
             <p>Department of Aeronautical and Aviation Engineering</p>
             <p>The Hong Kong Polytechnic University</p>
             <p className="font-semibold">Jan 2026</p>
@@ -83,7 +83,11 @@ export default function Home() {
         </div>
 
         {/* Tabs */}
-        <LeaderboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
+        <div className="flex justify-center">
+          <div className="w-full max-w-3xl">
+            <LeaderboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
+          </div>
+        </div>
       </motion.div>
 
       {/* Content */}
@@ -91,16 +95,16 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="max-w-7xl mx-auto"
+        className="max-w-6xl mx-auto"
       >
         {/* Info Section */}
-        <div className="mb-6 p-6 bg-white/80 dark:bg-gray-900/60 backdrop-blur rounded-2xl shadow-lg border border-black/5 dark:border-white/10">
+        <div className="mb-6 p-6 md:p-7 bg-white/95 dark:bg-gray-900/70 backdrop-blur rounded-3xl shadow-sm border border-black/5 dark:border-white/10">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             <div>
-              <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-2">
+              <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
                 {config.title}
               </h2>
-              <p className="text-gray-700/70 dark:text-gray-300/70">
+              <p className="text-gray-600 dark:text-gray-300">
                 {config.description}
               </p>
             </div>
@@ -109,9 +113,9 @@ export default function Home() {
                 onClick={handleRefresh}
                 disabled={isLoading}
                 className={cn(
-                  "flex items-center gap-2 px-6 py-3 rounded-lg font-semibold transition-all",
-                  "bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300",
-                  "hover:bg-gray-300 dark:hover:bg-gray-600",
+                  "flex items-center gap-2 px-5 py-2.5 rounded-2xl font-medium transition-all",
+                  "bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-200",
+                  "hover:bg-gray-200/80 dark:hover:bg-gray-700/80",
                   "disabled:opacity-50 disabled:cursor-not-allowed"
                 )}
               >
@@ -123,7 +127,7 @@ export default function Home() {
               </button>
               <button
                 onClick={() => setIsUploadModalOpen(true)}
-                className="flex items-center gap-2 px-6 py-3 rounded-xl font-semibold text-white bg-gradient-to-r from-violet-600 to-sky-600 hover:from-violet-700 hover:to-sky-700 transition-all shadow-lg hover:shadow-xl transform hover:scale-105"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl font-medium text-white bg-gray-900 hover:bg-gray-800 transition-all shadow-sm hover:shadow-md"
               >
                 <UploadIcon size={20} />
                 Upload Submission
@@ -138,15 +142,17 @@ export default function Home() {
             <motion.div
               animate={{ rotate: 360 }}
               transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
-              className="w-16 h-16 border-4 border-violet-600 border-t-transparent rounded-full"
+              className="w-14 h-14 border-4 border-slate-900/80 border-t-transparent rounded-full"
             />
           </div>
         ) : leaderboardData.length > 0 ? (
-          <LeaderboardTable
-            entries={leaderboardData}
-            metrics={config.metrics}
-            primaryMetric={config.metrics[0].key}
-          />
+          <div className="rounded-3xl bg-white/95 dark:bg-gray-900/70 backdrop-blur border border-black/5 dark:border-white/10 shadow-sm">
+            <LeaderboardTable
+              entries={leaderboardData}
+              metrics={config.metrics}
+              primaryMetric={config.metrics[0].key}
+            />
+          </div>
         ) : (
           <div className="text-center py-20">
             <p className="text-gray-600 dark:text-gray-400 text-lg">
@@ -169,7 +175,7 @@ export default function Home() {
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
-        className="max-w-7xl mx-auto mt-16 py-10 text-center text-gray-700/70 dark:text-gray-300/70"
+        className="max-w-6xl mx-auto mt-16 py-10 text-center text-gray-600 dark:text-gray-300"
       >
         <p className="font-semibold">
           AAE5303 - Robust Control Technology in Low-Altitude Aerial Vehicle

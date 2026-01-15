@@ -17,8 +17,8 @@ export default function LeaderboardTable({
   metrics,
   primaryMetric,
 }: LeaderboardTableProps) {
-  // Default: latest submission first (time is stored but not displayed)
-  const [sortKey, setSortKey] = useState<string>("submissionDate");
+  // Default: first metric, descending
+  const [sortKey, setSortKey] = useState<string>(primaryMetric);
   const [sortAscending, setSortAscending] = useState<boolean>(false);
 
   // Handle column sort
@@ -61,17 +61,17 @@ export default function LeaderboardTable({
 
   const renderRepoCell = (projectPrivateRepoUrl?: string, githubUsername?: string) => {
     if (projectPrivateRepoUrl) {
-      return (
-        <a
-          href={projectPrivateRepoUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-        >
-          <Github size={16} />
-          <span className="truncate max-w-[220px]">{projectPrivateRepoUrl}</span>
-        </a>
-      );
+    return (
+      <a
+        href={projectPrivateRepoUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
+      >
+        <Github size={16} />
+        <span className="truncate max-w-[220px]">{projectPrivateRepoUrl}</span>
+      </a>
+    );
     }
 
     if (!githubUsername) {
@@ -83,7 +83,7 @@ export default function LeaderboardTable({
         href={`https://github.com/${githubUsername}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+        className="flex items-center gap-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
       >
         <Github size={16} />
         <span>{githubUsername}</span>
@@ -92,10 +92,10 @@ export default function LeaderboardTable({
   };
 
   return (
-    <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
-      <table className="w-full">
+    <div className="overflow-x-auto rounded-3xl">
+      <table className="w-full text-sm">
         <thead>
-          <tr className="bg-gradient-to-r from-violet-600 to-sky-600 text-white">
+          <tr className="bg-gray-900 text-white">
             <th className="px-6 py-4 text-left font-semibold">Rank</th>
             <th className="px-6 py-4 text-left font-semibold">Group</th>
             <th className="px-6 py-4 text-left font-semibold">Repo</th>
@@ -163,8 +163,8 @@ export default function LeaderboardTable({
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
                   className={cn(
-                    "border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors",
-                    rank <= 3 && "bg-gradient-to-r from-yellow-50 to-transparent dark:from-yellow-900/20"
+                    "border-b border-gray-200/70 dark:border-gray-700/70 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 transition-colors",
+                    rank <= 3 && "bg-amber-50/60 dark:bg-amber-900/10"
                   )}
                 >
                   <td className="px-6 py-4">
@@ -189,7 +189,7 @@ export default function LeaderboardTable({
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-semibold">
+                  <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
                     {entry.groupName}
                   </td>
                   <td className="px-6 py-4">
