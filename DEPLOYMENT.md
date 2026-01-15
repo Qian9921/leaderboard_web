@@ -90,8 +90,7 @@ Edit `public/data/unet.json`:
 ```json
 [
   {
-    "studentId": "20240001",
-    "studentName": "Alice Chen",
+    "groupName": "Team Alpha",
     "githubUsername": "alice-chen",
     "submissionDate": "2024-12-20T10:30:00Z",
     "iou": 0.78,
@@ -100,8 +99,7 @@ Edit `public/data/unet.json`:
     "inferenceTime": 45
   },
   {
-    "studentId": "20240002",
-    "studentName": "Bob Wang",
+    "groupName": "Team Beta",
     "githubUsername": "bob-wang",
     "submissionDate": "2024-12-21T14:20:00Z",
     "iou": 0.82,
@@ -119,8 +117,7 @@ Edit `public/data/orbslam3.json`:
 ```json
 [
   {
-    "studentId": "20240001",
-    "studentName": "Alice Chen",
+    "groupName": "Team Alpha",
     "githubUsername": "alice-chen",
     "submissionDate": "2024-12-20T11:00:00Z",
     "ate": 0.025,
@@ -129,8 +126,7 @@ Edit `public/data/orbslam3.json`:
     "fps": 28
   },
   {
-    "studentId": "20240002",
-    "studentName": "Bob Wang",
+    "groupName": "Team Beta",
     "githubUsername": "bob-wang",
     "submissionDate": "2024-12-21T10:30:00Z",
     "ate": 0.018,

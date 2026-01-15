@@ -44,8 +44,7 @@ https://YOUR_USERNAME.github.io/leaderboard_web/
 ```json
 [
   {
-    "studentId": "20240001",
-    "studentName": "Alice Chen",
+    "groupName": "Team Alpha",
     "githubUsername": "alice-chen",
     "submissionDate": "2024-12-20T10:30:00Z",
     "iou": 0.78,
@@ -61,8 +60,7 @@ https://YOUR_USERNAME.github.io/leaderboard_web/
 ```json
 [
   {
-    "studentId": "20240001",
-    "studentName": "Alice Chen",
+    "groupName": "Team Alpha",
     "githubUsername": "alice-chen",
     "submissionDate": "2024-12-20T11:00:00Z",
     "ate": 0.025,
@@ -103,8 +101,7 @@ assetPrefix: '/YOUR_ACTUAL_REPO_NAME/',
 ## JSON Field Reference
 
 ### Required Fields (Both Leaderboards)
-- `studentId`: Student ID (e.g., "20240001")
-- `studentName`: Full name (e.g., "Alice Chen")
+- `groupName`: Group name (e.g., "Team Alpha")
 - `githubUsername`: GitHub username (e.g., "alice-chen")
 - `submissionDate`: ISO timestamp (e.g., "2024-12-20T10:30:00Z")
 

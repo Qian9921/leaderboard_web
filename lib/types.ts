@@ -4,39 +4,30 @@ export type LeaderboardType = 'unet' | 'orbslam3';
 
 // Base interface for all leaderboard entries
 export interface BaseLeaderboardEntry {
-  studentId: string;
-  studentName: string;
-  githubUsername: string;
-  submissionDate: string;
+  groupName: string;
+  projectPrivateRepoUrl?: string;
+  githubUsername?: string;
+  submissionDate?: string;
   rank?: number;
-}
-
-// OpenSplat (3D Reconstruction) metrics
-export interface OpenSplatEntry extends BaseLeaderboardEntry {
-  psnr: number;      // Peak Signal-to-Noise Ratio (higher is better)
-  ssim: number;      // Structural Similarity Index (higher is better)
-  lpips: number;     // Learned Perceptual Image Patch Similarity (lower is better)
-  renderTime: number; // Rendering time in seconds (lower is better)
 }
 
 // UNet (Image Segmentation) metrics
 export interface UNetEntry extends BaseLeaderboardEntry {
-  iou: number;           // Intersection over Union (higher is better)
-  diceScore: number;     // Dice Coefficient (higher is better)
-  accuracy: number;      // Pixel accuracy (higher is better)
-  inferenceTime: number; // Inference time in ms (lower is better)
+  dice_score: number;    // Dice Score (higher is better)
+  miou: number;          // Mean Intersection over Union (higher is better)
+  fwiou: number;         // Frequency Weighted IoU (higher is better)
 }
 
 // ORB-SLAM3 (Visual SLAM) metrics
 export interface OrbSlam3Entry extends BaseLeaderboardEntry {
-  ate: number;           // Absolute Trajectory Error in meters (lower is better)
-  rpe: number;           // Relative Pose Error (lower is better)
-  trackingSuccess: number; // Tracking success rate (higher is better)
-  fps: number;           // Frames per second (higher is better)
+  ate_rmse_m: number;                  // Absolute Trajectory Error RMSE (lower is better)
+  rpe_trans_drift_m_per_m: number;     // RPE Translation Drift (lower is better)
+  rpe_rot_drift_deg_per_100m: number;  // RPE Rotation Drift (lower is better)
+  completeness_pct: number;            // Completeness % (higher is better)
 }
 
 // Union type for all entries
-export type LeaderboardEntry = OpenSplatEntry | UNetEntry | OrbSlam3Entry;
+export type LeaderboardEntry = UNetEntry | OrbSlam3Entry;
 
 // Configuration for each leaderboard
 export interface LeaderboardConfig {
@@ -66,4 +57,3 @@ export interface UploadResponse {
   message: string;
   entry?: LeaderboardEntry;
 }
-

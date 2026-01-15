@@ -10,8 +10,8 @@ interface LeaderboardTabsProps {
 }
 
 const tabs: { id: LeaderboardType; label: string; icon: string }[] = [
-  { id: "unet", label: "UNet Segmentation", icon: "🧠" },
-  { id: "orbslam3", label: "ORB-SLAM3", icon: "🗺️" },
+  { id: "unet", label: "Semantic Segmentation (UNet)", icon: "🧠" },
+  { id: "orbslam3", label: "Visual Odometry (ORB-SLAM3)", icon: "🗺️" },
 ];
 
 export default function LeaderboardTabs({
@@ -35,7 +35,7 @@ export default function LeaderboardTabs({
           {activeTab === tab.id && (
             <motion.div
               layoutId="activeTab"
-              className="absolute inset-0 bg-gradient-to-r from-purple-600 to-blue-600 rounded-lg shadow-lg"
+              className="absolute inset-0 bg-gradient-to-r from-violet-600 to-sky-600 rounded-lg shadow-lg"
               transition={{ type: "spring", stiffness: 300, damping: 30 }}
             />
           )}

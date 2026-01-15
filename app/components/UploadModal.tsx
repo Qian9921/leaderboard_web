@@ -5,6 +5,8 @@ import { motion, AnimatePresence } from "framer-motion";
 import { X, Upload, FileJson, Check } from "lucide-react";
 import { LeaderboardType } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { leaderboardConfigs } from "@/lib/leaderboard-config";
+import { getSupabaseClient } from "@/lib/supabase";
 
 interface UploadModalProps {
   isOpen: boolean;
@@ -30,33 +32,11 @@ export default function UploadModal({
     setErrorMessage("");
 
     try {
-      const data = JSON.parse(jsonData);
+      const data = parseAndValidateSubmission(jsonData, leaderboardType);
       
-      // Validate required fields
-      if (!data.studentId || !data.studentName || !data.githubUsername) {
-        throw new Error("Missing required fields: studentId, studentName, githubUsername");
-      }
+      await upsertSubmissionToSupabase(leaderboardType, data);
+
       
-      // Add submission date
-      data.submissionDate = new Date().toISOString();
-      
-      // Store in localStorage (temporary for static site)
-      const storageKey = `leaderboard_${leaderboardType}`;
-      const existing = localStorage.getItem(storageKey);
-      const existingData = existing ? JSON.parse(existing) : [];
-      
-      // Check if student already submitted
-      const existingIndex = existingData.findIndex(
-        (entry: any) => entry.studentId === data.studentId
-      );
-      
-      if (existingIndex >= 0) {
-        existingData[existingIndex] = data;
-      } else {
-        existingData.push(data);
-      }
-      
-      localStorage.setItem(storageKey, JSON.stringify(existingData));
       
       setUploadStatus("success");
       setTimeout(() => {
@@ -93,7 +73,7 @@ export default function UploadModal({
             className="bg-white dark:bg-gray-900 rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] overflow-hidden"
           >
             {/* Header */}
-            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-purple-600 to-blue-600">
+            <div className="flex items-center justify-between p-6 border-b border-gray-200 dark:border-gray-700 bg-gradient-to-r from-violet-600 to-sky-600">
               <div className="flex items-center gap-3">
                 <FileJson className="text-white" size={24} />
                 <h2 className="text-2xl font-bold text-white">Upload Submission</h2>
@@ -124,7 +104,7 @@ export default function UploadModal({
                 <textarea
                   value={jsonData}
                   onChange={(e) => setJsonData(e.target.value)}
-                  placeholder={`{\n  "studentId": "20240001",\n  "studentName": "张三",\n  "githubUsername": "zhangsan",\n  ...\n}`}
+                  placeholder={`{\n  \"group_name\": \"Team Alpha\",\n  \"project_private_repo_url\": \"https://github.com/yourusername/project.git\",\n  \"metrics\": {\n    \"miou\": 72.73,\n    \"dice_score\": 39.80,\n    \"fwiou\": 88.85\n  }\n}`}
                   className={cn(
                     "w-full h-64 px-4 py-3 font-mono text-sm rounded-lg border-2 transition-colors",
                     "bg-gray-50 dark:bg-gray-800",
@@ -143,7 +123,7 @@ export default function UploadModal({
                   className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg"
                 >
                   <p className="text-red-600 dark:text-red-400 text-sm">
-                    ❌ {errorMessage}
+                    Error: {errorMessage}
                   </p>
                 </motion.div>
               )}
@@ -156,7 +136,7 @@ export default function UploadModal({
                 >
                   <Check className="text-green-600 dark:text-green-400" size={20} />
                   <p className="text-green-600 dark:text-green-400 text-sm font-semibold">
-                    ✅ Upload successful!
+                    Upload successful!
                   </p>
                 </motion.div>
               )}
@@ -175,8 +155,8 @@ export default function UploadModal({
                 disabled={isUploading || !jsonData.trim()}
                 className={cn(
                   "flex-1 px-6 py-3 rounded-lg font-semibold text-white transition-all",
-                  "bg-gradient-to-r from-purple-600 to-blue-600",
-                  "hover:from-purple-700 hover:to-blue-700",
+                  "bg-gradient-to-r from-violet-600 to-sky-600",
+                  "hover:from-violet-700 hover:to-sky-700",
                   "disabled:opacity-50 disabled:cursor-not-allowed",
                   "flex items-center justify-center gap-2"
                 )}
@@ -206,3 +186,80 @@ export default function UploadModal({
   );
 }
 
+
+async function upsertSubmissionToSupabase(leaderboardType: LeaderboardType, submission: any) {
+  const supabase = getSupabaseClient();
+  const config = leaderboardConfigs[leaderboardType];
+
+  const metrics: Record<string, number> = {};
+  for (const metric of config.metrics) {
+    metrics[metric.key] = submission.metrics[metric.key];
+  }
+
+  const payload = {
+    leaderboard_type: leaderboardType,
+    group_name: submission.groupName,
+    project_private_repo_url: submission.projectPrivateRepoUrl,
+    github_username: submission.githubUsername ?? null,
+    metrics,
+  };
+
+  const { error } = await supabase
+    .from("submissions")
+    .upsert(payload, { onConflict: "leaderboard_type,group_name" });
+
+  if (error) {
+    throw error;
+  }
+}
+
+function parseAndValidateSubmission(jsonString: string, leaderboardType: LeaderboardType) {
+  // Parse JSON and enforce a single-entry object (not an array)
+  const data = JSON.parse(jsonString);
+
+  if (Array.isArray(data)) {
+    throw new Error("Please upload a single JSON object, not an array.");
+  }
+
+  const groupName = data?.group_name ?? data?.groupName;
+  const projectPrivateRepoUrl = data?.project_private_repo_url ?? data?.projectPrivateRepoUrl;
+  const githubUsername = data?.github_username ?? data?.githubUsername;
+  const metrics = data?.metrics;
+
+  // Validate required identity fields
+  if (!groupName || !projectPrivateRepoUrl) {
+    throw new Error("Missing required fields: group_name, project_private_repo_url");
+  }
+
+  if (typeof groupName !== "string") {
+    throw new Error("group_name must be a string.");
+  }
+
+  if (typeof projectPrivateRepoUrl !== "string") {
+    throw new Error("project_private_repo_url must be a string.");
+  }
+
+  if (githubUsername !== undefined && typeof githubUsername !== "string") {
+    throw new Error("github_username must be a string if provided.");
+  }
+
+  // Validate metrics for the selected leaderboard
+  const config = leaderboardConfigs[leaderboardType];
+  if (!metrics || typeof metrics !== "object") {
+    throw new Error("metrics must be an object.");
+  }
+
+  for (const metric of config.metrics) {
+    const value = metrics[metric.key];
+    if (typeof value !== "number" || Number.isNaN(value)) {
+      throw new Error(`Invalid metric: "${metric.key}" must be a number.`);
+    }
+  }
+
+  return {
+    groupName,
+    projectPrivateRepoUrl,
+    githubUsername,
+    metrics,
+  };
+}

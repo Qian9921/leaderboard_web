@@ -12,7 +12,7 @@ A modern, gamified leaderboard web application for displaying student performanc
   - Gradient colors and animation effects
   - Progress bars for visualization
   - Smooth transitions and hover effects
-- **Data Upload**: Students can upload JSON submissions (stored in browser localStorage)
+- **Shared Upload (Class-wide)**: Students upload JSON submissions on the website, stored in a shared Supabase database (visible to everyone)
 - **Responsive Design**: Works perfectly on desktop and mobile
 - **Dark Mode Support**: Automatically adapts to system theme
 
@@ -77,6 +77,99 @@ The workflow will automatically run on every push to the `main` branch. Your sit
 https://YOUR_USERNAME.github.io/leaderboard_web/
 ```
 
+## 🌍 Shared Submissions (Required for class-wide leaderboard)
+
+GitHub Pages is a static site, so **class-wide shared submissions require a database**.
+This project uses **Supabase** (free tier is usually enough for a course leaderboard).
+
+### 1) Create a Supabase project
+
+- Create a new project in Supabase
+- Copy the **Project URL** and **Anon public key**
+
+### 2) Create database table (SQL)
+
+Run this in Supabase SQL editor:
+
+```sql
+-- Shared submissions table for AAE5303 leaderboard
+create table if not exists public.submissions (
+  leaderboard_type text not null check (leaderboard_type in ('unet', 'orbslam3')),
+  group_name text not null,
+  project_private_repo_url text not null,
+  github_username text,
+  metrics jsonb not null default '{}'::jsonb,
+  submitted_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  primary key (leaderboard_type, group_name)
+);
+
+-- Keep updated_at fresh on updates, and treat overwrite as a new submission time
+create or replace function public.touch_submission_timestamps()
+returns trigger
+language plpgsql
+as $$
+begin
+  new.submitted_at = now();
+  new.updated_at = now();
+  return new;
+end;
+$$;
+
+drop trigger if exists trg_touch_submission_timestamps on public.submissions;
+create trigger trg_touch_submission_timestamps
+before update on public.submissions
+for each row execute function public.touch_submission_timestamps();
+
+-- RLS (Row Level Security)
+alter table public.submissions enable row level security;
+
+-- Public read (everyone can view the leaderboard)
+drop policy if exists "public read submissions" on public.submissions;
+create policy "public read submissions"
+on public.submissions
+for select
+using (true);
+
+-- Public write (students can submit without login)
+-- Note: without authentication, anyone can overwrite entries.
+-- For stricter security, use Supabase Auth or an Edge Function with a server-side secret.
+drop policy if exists "public write submissions" on public.submissions;
+create policy "public write submissions"
+on public.submissions
+for insert
+with check (true);
+
+drop policy if exists "public update submissions" on public.submissions;
+create policy "public update submissions"
+on public.submissions
+for update
+using (true)
+with check (true);
+```
+
+### 3) Configure environment variables
+
+#### Local development
+
+Create `leaderboard_web/.env.local`:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_ANON_KEY=YOUR_SUPABASE_ANON_PUBLIC_KEY
+```
+
+#### GitHub Pages (recommended)
+
+In your GitHub repository:
+
+- Settings → Secrets and variables → Actions → New repository secret
+- Add:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+
+The workflow injects these secrets at build time (see `.github/workflows/deploy.yml`).
+
 ## 📁 Project Structure
 
 ```
@@ -108,103 +201,57 @@ leaderboard_web/
 
 ## 📊 Complete JSON Templates
 
-### UNet (Image Segmentation)
+### Semantic Segmentation (UNet)
 
-**Complete example with 3 entries:**
-
-```json
-[
-  {
-    "studentId": "20240001",
-    "studentName": "Alice Chen",
-    "githubUsername": "alice-chen",
-    "submissionDate": "2024-12-20T10:30:00Z",
-    "iou": 0.78,
-    "diceScore": 0.85,
-    "accuracy": 0.92,
-    "inferenceTime": 45
-  },
-  {
-    "studentId": "20240002",
-    "studentName": "Bob Wang",
-    "githubUsername": "bob-wang",
-    "submissionDate": "2024-12-21T14:20:00Z",
-    "iou": 0.82,
-    "diceScore": 0.88,
-    "accuracy": 0.94,
-    "inferenceTime": 38
-  },
-  {
-    "studentId": "20240003",
-    "studentName": "Charlie Li",
-    "githubUsername": "charlie-li",
-    "submissionDate": "2024-12-22T09:15:00Z",
-    "iou": 0.75,
-    "diceScore": 0.83,
-    "accuracy": 0.90,
-    "inferenceTime": 52
-  }
-]
-```
-
-**Metrics explained**:
-- `studentId`: Student ID (string, required)
-- `studentName`: Full name (string, required)
-- `githubUsername`: GitHub username (string, required)
-- `submissionDate`: ISO 8601 timestamp (string, required)
-- `iou`: Intersection over Union, range 0-1 (number, higher is better)
-- `diceScore`: Dice Coefficient, range 0-1 (number, higher is better)
-- `accuracy`: Pixel accuracy, range 0-1 (number, higher is better)
-- `inferenceTime`: Inference time in milliseconds (number, lower is better)
-
-### ORB-SLAM3 (Visual SLAM)
-
-**Complete example with 3 entries:**
+Metrics are reported as percentages (0 to 100).
 
 ```json
-[
-  {
-    "studentId": "20240001",
-    "studentName": "Alice Chen",
-    "githubUsername": "alice-chen",
-    "submissionDate": "2024-12-20T11:00:00Z",
-    "ate": 0.025,
-    "rpe": 0.018,
-    "trackingSuccess": 0.95,
-    "fps": 28
-  },
-  {
-    "studentId": "20240002",
-    "studentName": "Bob Wang",
-    "githubUsername": "bob-wang",
-    "submissionDate": "2024-12-21T10:30:00Z",
-    "ate": 0.018,
-    "rpe": 0.012,
-    "trackingSuccess": 0.98,
-    "fps": 32
-  },
-  {
-    "studentId": "20240003",
-    "studentName": "Charlie Li",
-    "githubUsername": "charlie-li",
-    "submissionDate": "2024-12-22T14:20:00Z",
-    "ate": 0.030,
-    "rpe": 0.022,
-    "trackingSuccess": 0.92,
-    "fps": 25
+{
+  "group_name": "Team Alpha",
+  "project_private_repo_url": "https://github.com/yourusername/project.git",
+  "metrics": {
+    "miou": 72.73,
+    "dice_score": 39.80,
+    "fwiou": 88.85
   }
-]
+}
 ```
 
-**Metrics explained**:
-- `studentId`: Student ID (string, required)
-- `studentName`: Full name (string, required)
-- `githubUsername`: GitHub username (string, required)
-- `submissionDate`: ISO 8601 timestamp (string, required)
-- `ate`: Absolute Trajectory Error in meters (number, lower is better)
-- `rpe`: Relative Pose Error (number, lower is better)
-- `trackingSuccess`: Tracking success rate, range 0-1 (number, higher is better)
-- `fps`: Frames Per Second (number, higher is better)
+**Fields explained**:
+- `group_name`: Group name (string, required). Used as the overwrite key.
+- `project_private_repo_url`: Private repo URL (string, required)
+- `github_username`: GitHub username (string, optional)
+- `metrics`: Metric object (required)
+  - `miou`: Mean IoU in % (number, higher is better)
+  - `dice_score`: Dice score in % (number, higher is better)
+  - `fwiou`: Frequency weighted IoU in % (number, higher is better)
+
+### Visual Odometry (ORB-SLAM3)
+
+```json
+{
+  "group_name": "Team Alpha",
+  "project_private_repo_url": "https://github.com/yourusername/project.git",
+  "metrics": {
+    "ate_rmse_m": 88.2281,
+    "rpe_trans_drift_m_per_m": 2.04084,
+    "rpe_rot_drift_deg_per_100m": 76.69911,
+    "completeness_pct": 95.73
+  }
+}
+```
+
+**Fields explained**:
+- `group_name`: Group name (string, required). Used as the overwrite key.
+- `project_private_repo_url`: Private repo URL (string, required)
+- `github_username`: GitHub username (string, optional)
+- `metrics`: Metric object (required)
+  - `ate_rmse_m`: ATE RMSE in meters (number, lower is better)
+  - `rpe_trans_drift_m_per_m`: RPE translation drift (m/m) (number, lower is better)
+  - `rpe_rot_drift_deg_per_100m`: RPE rotation drift (deg/100m) (number, lower is better)
+  - `completeness_pct`: Completeness in % (number, higher is better)
+
+**Note**: Submission time is recorded automatically by the database when you upload. Do not include it in your JSON.
 
 ## 🎮 Usage
 
@@ -225,13 +272,13 @@ leaderboard_web/
 
 ```json
 {
-  "studentId": "20240099",
-  "studentName": "Your Name",
-  "githubUsername": "your-username",
-  "iou": 0.88,
-  "diceScore": 0.92,
-  "accuracy": 0.96,
-  "inferenceTime": 32
+  "group_name": "Team Alpha",
+  "project_private_repo_url": "https://github.com/yourusername/project.git",
+  "metrics": {
+    "miou": 72.73,
+    "dice_score": 39.80,
+    "fwiou": 88.85
+  }
 }
 ```
 

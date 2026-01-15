@@ -1,6 +1,6 @@
 import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
-import { LeaderboardEntry, MetricConfig } from "./types";
+import { LeaderboardEntry } from "./types";
 
 // Utility function for merging Tailwind classes
 export function cn(...inputs: ClassValue[]) {
@@ -15,12 +15,20 @@ export function formatNumber(value: number, decimals: number = 2): string {
   return value.toFixed(decimals);
 }
 
-// Format percentage
+// Format percentage (assumes 0-1 input, multiplies by 100)
 export function formatPercentage(value: number): string {
   if (value === undefined || value === null || isNaN(value)) {
     return "N/A";
   }
   return `${(value * 100).toFixed(2)}%`;
+}
+
+// Format percentage value (assumes 0-100 input, just appends %)
+export function formatPercentageValue(value: number): string {
+  if (value === undefined || value === null || isNaN(value)) {
+    return "N/A";
+  }
+  return `${value.toFixed(2)}%`;
 }
 
 // Format time in milliseconds
@@ -43,9 +51,34 @@ export function sortEntries<T extends LeaderboardEntry>(
   return [...entries].sort((a, b) => {
     const aValue = (a as any)[sortKey];
     const bValue = (b as any)[sortKey];
-    
-    if (aValue === undefined || bValue === undefined) return 0;
-    
+
+    // Always push missing values to the bottom
+    const aMissing = aValue === undefined || aValue === null;
+    const bMissing = bValue === undefined || bValue === null;
+    if (aMissing && bMissing) return 0;
+    if (aMissing) return 1;
+    if (bMissing) return -1;
+
+    // Numbers: numeric compare
+    if (typeof aValue === "number" && typeof bValue === "number") {
+      const comparison = aValue - bValue;
+      return ascending ? comparison : -comparison;
+    }
+
+    // ISO date strings: compare by timestamp
+    if (typeof aValue === "string" && typeof bValue === "string") {
+      const aTime = Date.parse(aValue);
+      const bTime = Date.parse(bValue);
+      if (!Number.isNaN(aTime) && !Number.isNaN(bTime)) {
+        const comparison = aTime - bTime;
+        return ascending ? comparison : -comparison;
+      }
+
+      const comparison = aValue.localeCompare(bValue);
+      return ascending ? comparison : -comparison;
+    }
+
+    // Fallback: generic comparison
     const comparison = aValue < bValue ? -1 : aValue > bValue ? 1 : 0;
     return ascending ? comparison : -comparison;
   });
@@ -126,4 +159,3 @@ export function getPerformanceColor(
   if (score >= 0.2) return "bg-orange-500";
   return "bg-red-500";
 }
-

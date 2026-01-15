@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "AAE5303 Leaderboard",
-  description: "AAE5303 Course Project Leaderboard System - UNet, ORB-SLAM3",
+  title: "AAE5303 - Course Leaderboard",
+  description:
+    "AAE5303 - Robust Control Technology in Low-Altitude Aerial Vehicle (Jan 2026) — Course Project Leaderboards",
 };
 
 export default function RootLayout({
@@ -13,7 +14,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className="antialiased min-h-screen bg-gradient-to-br from-gray-50 via-blue-50 to-purple-50 dark:from-gray-900 dark:via-gray-800 dark:to-gray-900">
+      <body className="antialiased min-h-screen bg-gradient-to-br from-rose-50 via-sky-50 to-violet-50 dark:from-gray-950 dark:via-gray-900 dark:to-gray-950">
         {children}
       </body>
     </html>

@@ -1,52 +1,8 @@
 [
   {
-    "studentId": "20240001",
-    "studentName": "Alice Chen",
-    "githubUsername": "alice-chen",
-    "submissionDate": "2024-12-20T10:30:00Z",
-    "iou": 0.78,
-    "diceScore": 0.85,
-    "accuracy": 0.92,
-    "inferenceTime": 45
-  },
-  {
-    "studentId": "20240002",
-    "studentName": "Bob Wang",
-    "githubUsername": "bob-wang",
-    "submissionDate": "2024-12-21T14:20:00Z",
-    "iou": 0.82,
-    "diceScore": 0.88,
-    "accuracy": 0.94,
-    "inferenceTime": 38
-  },
-  {
-    "studentId": "20240006",
-    "studentName": "Fiona Huang",
-    "githubUsername": "fiona-huang",
-    "submissionDate": "2024-12-22T13:10:00Z",
-    "iou": 0.75,
-    "diceScore": 0.83,
-    "accuracy": 0.90,
-    "inferenceTime": 52
-  },
-  {
-    "studentId": "20240007",
-    "studentName": "George Wu",
-    "githubUsername": "george-wu",
-    "submissionDate": "2024-12-23T15:25:00Z",
-    "iou": 0.85,
-    "diceScore": 0.91,
-    "accuracy": 0.95,
-    "inferenceTime": 35
-  },
-  {
-    "studentId": "20240008",
-    "studentName": "Helen Zhao",
-    "githubUsername": "helen-zhao",
-    "submissionDate": "2024-12-24T12:40:00Z",
-    "iou": 0.80,
-    "diceScore": 0.87,
-    "accuracy": 0.93,
-    "inferenceTime": 42
+    "groupName": "Baseline (Instructor)",
+    "miou": 72.73,
+    "dice_score": 39.80,
+    "fwiou": 88.85
   }
 ]

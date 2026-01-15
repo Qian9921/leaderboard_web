@@ -1,68 +1,67 @@
 import { LeaderboardConfig } from "./types";
-import { formatNumber, formatPercentage, formatTime } from "./utils";
+import { formatNumber, formatPercentageValue } from "./utils";
 
 export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
   unet: {
     type: "unet",
-    title: "UNet Image Segmentation",
-    description: "Medical image segmentation model performance evaluation",
+    title: "Project: Semantic Segmentation (UNet)",
+    description: "UAVScenes HKisland · Test set (204 images)",
     metrics: [
       {
-        key: "iou",
-        label: "IoU",
+        key: "miou",
+        label: "mIoU",
+        unit: "%",
         higherIsBetter: true,
-        format: (v) => formatPercentage(v),
+        format: (v) => formatPercentageValue(v),
       },
       {
-        key: "diceScore",
+        key: "dice_score",
         label: "Dice Score",
+        unit: "%",
         higherIsBetter: true,
-        format: (v) => formatPercentage(v),
+        format: (v) => formatPercentageValue(v),
       },
       {
-        key: "accuracy",
-        label: "Accuracy",
+        key: "fwiou",
+        label: "FWIoU",
+        unit: "%",
         higherIsBetter: true,
-        format: (v) => formatPercentage(v),
-      },
-      {
-        key: "inferenceTime",
-        label: "Inference Time",
-        unit: "ms",
-        higherIsBetter: false,
-        format: (v) => formatTime(v),
+        format: (v) => formatPercentageValue(v),
       },
     ],
   },
   orbslam3: {
     type: "orbslam3",
-    title: "ORB-SLAM3 Visual SLAM",
-    description: "Real-time visual simultaneous localization and mapping evaluation",
+    title: "Project: Visual Odometry (ORB-SLAM3)",
+    description: "MARS-LVIG · AMtown sequence · Sim(3) alignment + scale correction",
     metrics: [
       {
-        key: "ate",
-        label: "ATE",
+        key: "ate_rmse_m",
+        label: "ATE RMSE",
         unit: "m",
         higherIsBetter: false,
-        format: (v) => formatNumber(v, 3),
+        format: (v) => formatNumber(v, 4),
       },
       {
-        key: "rpe",
-        label: "RPE",
+        key: "rpe_trans_drift_m_per_m",
+        label: "RPE Trans",
+        unit: "m/m",
         higherIsBetter: false,
-        format: (v) => formatNumber(v, 3),
+        format: (v) => formatNumber(v, 5),
       },
       {
-        key: "trackingSuccess",
-        label: "Tracking Success",
-        higherIsBetter: true,
-        format: (v) => formatPercentage(v),
+        key: "rpe_rot_drift_deg_per_100m",
+        label: "RPE Rot",
+        unit: "deg/100m",
+        higherIsBetter: false,
+        format: (v) => formatNumber(v, 5),
       },
       {
-        key: "fps",
-        label: "FPS",
+        key: "completeness_pct",
+        label: "Completeness",
+        unit: "%",
         higherIsBetter: true,
-        format: (v) => formatNumber(v, 0),
+        format: (v) => formatPercentageValue(v),
       },
     ],
   },
@@ -77,4 +76,3 @@ export function getPrimaryMetric(type: string): string {
 export function getPrimaryMetricConfig(type: string) {
   return leaderboardConfigs[type]?.metrics[0];
 }
-

@@ -17,36 +17,93 @@ export default function LeaderboardTable({
   metrics,
   primaryMetric,
 }: LeaderboardTableProps) {
-  const [sortKey, setSortKey] = useState<string>(primaryMetric);
+  // Default: latest submission first (time is stored but not displayed)
+  const [sortKey, setSortKey] = useState<string>("submissionDate");
   const [sortAscending, setSortAscending] = useState<boolean>(false);
 
   // Handle column sort
-  const handleSort = (key: string, higherIsBetter: boolean) => {
+  // User requirement: first click => ascending, second click => descending
+  const handleSort = (key: string) => {
     if (sortKey === key) {
       setSortAscending(!sortAscending);
     } else {
       setSortKey(key);
-      setSortAscending(!higherIsBetter);
+      setSortAscending(true);
     }
   };
 
   // Sort entries based on current sort configuration
   const sortedEntries = sortEntries(entries, sortKey, sortAscending);
 
+  const getMetricDomain = (key: string): { min: number; max: number } => {
+    const values = sortedEntries
+      .map((e: any) => e[key])
+      .filter((v: any) => typeof v === "number" && !Number.isNaN(v));
+
+    if (values.length === 0) {
+      return { min: 0, max: 1 };
+    }
+
+    return { min: Math.min(...values), max: Math.max(...values) };
+  };
+
+  const getMetricBarWidthPct = (
+    value: number,
+    min: number,
+    max: number,
+    higherIsBetter: boolean
+  ): number => {
+    if (max <= min) return 100;
+    const normalized = (value - min) / (max - min);
+    const score = higherIsBetter ? normalized : 1 - normalized;
+    return Math.max(0, Math.min(100, score * 100));
+  };
+
+  const renderRepoCell = (projectPrivateRepoUrl?: string, githubUsername?: string) => {
+    if (projectPrivateRepoUrl) {
+      return (
+        <a
+          href={projectPrivateRepoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+        >
+          <Github size={16} />
+          <span className="truncate max-w-[220px]">{projectPrivateRepoUrl}</span>
+        </a>
+      );
+    }
+
+    if (!githubUsername) {
+      return <span className="text-gray-400">—</span>;
+    }
+
+    return (
+      <a
+        href={`https://github.com/${githubUsername}`}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+      >
+        <Github size={16} />
+        <span>{githubUsername}</span>
+      </a>
+    );
+  };
+
   return (
     <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700 shadow-lg">
       <table className="w-full">
         <thead>
-          <tr className="bg-gradient-to-r from-purple-600 to-blue-600 text-white">
+          <tr className="bg-gradient-to-r from-violet-600 to-sky-600 text-white">
             <th className="px-6 py-4 text-left font-semibold">Rank</th>
-            <th className="px-6 py-4 text-left font-semibold">Student ID</th>
-            <th className="px-6 py-4 text-left font-semibold">Name</th>
-            <th className="px-6 py-4 text-left font-semibold">GitHub</th>
+            <th className="px-6 py-4 text-left font-semibold">Group</th>
+            <th className="px-6 py-4 text-left font-semibold">Repo</th>
             {metrics.map((metric) => (
               <th
                 key={metric.key}
                 className="px-6 py-4 text-left font-semibold cursor-pointer hover:bg-white/10 transition-colors"
-                onClick={() => handleSort(metric.key, metric.higherIsBetter)}
+                onClick={() => handleSort(metric.key)}
               >
                 <div className="flex items-center gap-2">
                   <span>{metric.label}</span>
@@ -69,7 +126,27 @@ export default function LeaderboardTable({
                 </div>
               </th>
             ))}
-            <th className="px-6 py-4 text-left font-semibold">Submission Time</th>
+            <th
+              className="px-6 py-4 text-left font-semibold cursor-pointer hover:bg-white/10 transition-colors"
+              onClick={() => handleSort("submissionDate")}
+            >
+              <div className="flex items-center gap-2">
+                <span>Submission Time</span>
+                {sortKey === "submissionDate" && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="text-yellow-300"
+                  >
+                    {sortAscending ? (
+                      <ArrowUp size={16} />
+                    ) : (
+                      <ArrowDown size={16} />
+                    )}
+                  </motion.div>
+                )}
+              </div>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -80,7 +157,7 @@ export default function LeaderboardTable({
 
               return (
                 <motion.tr
-                  key={entry.studentId}
+                  key={entry.groupName}
                   initial={{ opacity: 0, y: 20 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -20 }}
@@ -112,28 +189,24 @@ export default function LeaderboardTable({
                       </span>
                     </div>
                   </td>
-                  <td className="px-6 py-4 font-mono text-sm">
-                    {entry.studentId}
-                  </td>
                   <td className="px-6 py-4 font-semibold">
-                    {entry.studentName}
+                    {entry.groupName}
                   </td>
                   <td className="px-6 py-4">
-                    <a
-                      href={`https://github.com/${entry.githubUsername}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="flex items-center gap-2 text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                    >
-                      <Github size={16} />
-                      <span>{entry.githubUsername}</span>
-                    </a>
+                    {renderRepoCell(entry.projectPrivateRepoUrl, entry.githubUsername)}
                   </td>
                   {metrics.map((metric) => {
                     const value = (entry as any)[metric.key];
                     const formattedValue = metric.format
                       ? metric.format(value)
                       : value;
+                    const { min, max } = getMetricDomain(metric.key);
+                    const barWidth = getMetricBarWidthPct(
+                      value,
+                      min,
+                      max,
+                      metric.higherIsBetter
+                    );
 
                     return (
                       <td key={metric.key} className="px-6 py-4">
@@ -150,7 +223,7 @@ export default function LeaderboardTable({
                                 rank <= 3 ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-blue-500"
                               )}
                               style={{
-                                width: `${Math.min(100, (value / Math.max(...sortedEntries.map((e: any) => e[metric.key]))) * 100)}%`,
+                                width: `${barWidth}%`,
                               }}
                             />
                           </div>
@@ -158,8 +231,8 @@ export default function LeaderboardTable({
                       </td>
                     );
                   })}
-                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400">
-                    {formatDate(entry.submissionDate)}
+                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                    {entry.submissionDate ? formatDate(entry.submissionDate) : "—"}
                   </td>
                 </motion.tr>
               );
