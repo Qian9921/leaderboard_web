@@ -151,6 +151,8 @@ export default function Home() {
               entries={leaderboardData}
               metrics={config.metrics}
               primaryMetric={config.metrics[0].key}
+              leaderboardType={activeTab}
+              onDeleteSuccess={handleRefresh}
             />
           </div>
         ) : (

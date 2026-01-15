@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUp, ArrowDown, Github } from "lucide-react";
+import { ArrowUp, ArrowDown, Github, Trash2 } from "lucide-react";
 import { LeaderboardEntry, MetricConfig } from "@/lib/types";
 import { sortEntries, getRankBadge, formatDate, cn } from "@/lib/utils";
 
@@ -10,12 +10,16 @@ interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   metrics: MetricConfig[];
   primaryMetric: string;
+  leaderboardType: string;
+  onDeleteSuccess?: () => void;
 }
 
 export default function LeaderboardTable({
   entries,
   metrics,
   primaryMetric,
+  leaderboardType,
+  onDeleteSuccess,
 }: LeaderboardTableProps) {
   // Default: first metric, descending
   const [sortKey, setSortKey] = useState<string>(primaryMetric);
@@ -91,6 +95,48 @@ export default function LeaderboardTable({
     );
   };
 
+  const handleDelete = async (groupName: string) => {
+    const confirmed = window.confirm(
+      "Are you sure you want to delete this submission?"
+    );
+    if (!confirmed) return;
+
+    const deleteKey = window.prompt("Enter delete key to remove this submission:");
+    if (!deleteKey) return;
+
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    if (!supabaseUrl || !anonKey) {
+      window.alert("Supabase is not configured.");
+      return;
+    }
+
+    try {
+      const response = await fetch(`${supabaseUrl}/functions/v1/delete-submission`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${anonKey}`,
+        },
+        body: JSON.stringify({
+          leaderboard_type: leaderboardType,
+          group_name: groupName,
+          delete_key: deleteKey,
+        }),
+      });
+
+      if (!response.ok) {
+        const payload = await response.json().catch(() => ({}));
+        throw new Error(payload?.error || "Delete failed.");
+      }
+
+      onDeleteSuccess?.();
+    } catch (err) {
+      console.error("Failed to delete submission:", err);
+      window.alert("Delete failed. Please check the key and try again.");
+    }
+  };
+
   return (
     <div className="overflow-x-auto rounded-3xl">
       <table className="w-full text-sm">
@@ -147,6 +193,7 @@ export default function LeaderboardTable({
                 )}
               </div>
             </th>
+            <th className="px-6 py-4 text-left font-semibold">Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -233,6 +280,15 @@ export default function LeaderboardTable({
                   })}
                   <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
                     {entry.submissionDate ? formatDate(entry.submissionDate) : "—"}
+                  </td>
+                  <td className="px-6 py-4">
+                    <button
+                      onClick={() => handleDelete(entry.groupName)}
+                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200/80 dark:border-gray-700/70 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100/70 dark:hover:bg-gray-800/70 transition-colors"
+                    >
+                      <Trash2 size={14} />
+                      Delete
+                    </button>
                   </td>
                 </motion.tr>
               );

@@ -170,6 +170,40 @@ In your GitHub repository:
 
 The workflow injects these secrets at build time (see `.github/workflows/deploy.yml`).
 
+### 4) Delete submissions (admin via Edge Function)
+
+Each row has a **Delete** button. You must enter a **delete key** to remove a submission.
+The delete key is validated on the **server** (Edge Function), so it is not exposed in the frontend.
+
+#### Deploy the Edge Function
+
+1) Install Supabase CLI (once):
+
+```bash
+npm install -g supabase
+```
+
+2) Login and link the project:
+
+```bash
+supabase login
+supabase link --project-ref YOUR_PROJECT_REF
+```
+
+3) Set secrets on Supabase (server-side only):
+
+```bash
+supabase secrets set DELETE_KEY=YOUR_STRONG_DELETE_KEY \
+  SUPABASE_URL=YOUR_SUPABASE_PROJECT_URL \
+  SUPABASE_SERVICE_ROLE_KEY=YOUR_SUPABASE_SERVICE_ROLE_KEY
+```
+
+4) Deploy the function:
+
+```bash
+supabase functions deploy delete-submission
+```
+
 ## 📁 Project Structure
 
 ```
