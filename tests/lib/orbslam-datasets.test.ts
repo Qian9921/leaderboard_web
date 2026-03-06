@@ -4,6 +4,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
+  ORBSLAM_DATASETS,
   DEFAULT_ORBSLAM_DATASET,
   ORBSLAM_DATASET_KEYS,
   getOrbslamDataUrl,
@@ -11,6 +12,11 @@ import {
   getOrbslamDatasetMeta,
 } from "../../lib/orbslam-datasets";
 import { normalizeLeaderboardEntries } from "../../lib/leaderboard-data";
+import {
+  buildDatasetSelectorStats,
+  filterDatasets,
+  groupDatasetsByScene,
+} from "../../lib/orbslam-dataset-selector";
 
 test("orbslam dataset inventory matches the HKU MARS sequence list", () => {
   assert.equal(DEFAULT_ORBSLAM_DATASET, "AMtown02");
@@ -119,4 +125,63 @@ test("leaderboard payload normalizer accepts either a single entry or an array",
 
   assert.deepEqual(normalizeLeaderboardEntries(singleEntry), [singleEntry]);
   assert.deepEqual(normalizeLeaderboardEntries([singleEntry]), [singleEntry]);
+});
+
+test("dataset selector groups datasets into stable product scene sections", () => {
+  const grouped = groupDatasetsByScene(ORBSLAM_DATASETS);
+
+  assert.deepEqual(
+    grouped.map((group) => group.id),
+    ["town", "valley", "airport", "island", "featureless"]
+  );
+  assert.equal(grouped[0].label, "Town");
+  assert.equal(grouped[0].datasets.length, 3);
+  assert.equal(grouped[2].label, "Airport");
+  assert.equal(grouped[2].datasets.length, 7);
+});
+
+test("dataset selector search matches dataset ids and scene names", () => {
+  assert.deepEqual(
+    filterDatasets(ORBSLAM_DATASETS, { query: "airport", sceneFilter: "all" }).map(
+      (dataset) => dataset.key
+    ),
+    [
+      "HKairport01",
+      "HKairport02",
+      "HKairport03",
+      "HKairport_GNSS01",
+      "HKairport_GNSS02",
+      "HKairport_GNSS03",
+      "HKairport_GNSS_Evening",
+    ]
+  );
+
+  assert.deepEqual(
+    filterDatasets(ORBSLAM_DATASETS, { query: "town02", sceneFilter: "all" }).map(
+      (dataset) => dataset.key
+    ),
+    ["AMtown02"]
+  );
+});
+
+test("dataset selector scene filter narrows visible datasets", () => {
+  const filtered = filterDatasets(ORBSLAM_DATASETS, {
+    query: "",
+    sceneFilter: "featureless",
+  });
+
+  assert.deepEqual(
+    filtered.map((dataset) => dataset.key),
+    ["Featureless_GNSS01", "Featureless_GNSS02", "Featureless_GNSS03"]
+  );
+});
+
+test("dataset selector stats summarize the explorer state", () => {
+  const stats = buildDatasetSelectorStats(ORBSLAM_DATASETS, DEFAULT_ORBSLAM_DATASET);
+
+  assert.deepEqual(stats, {
+    totalDatasets: 23,
+    totalGroups: 5,
+    activeDatasetLabel: "AMtown02",
+  });
 });

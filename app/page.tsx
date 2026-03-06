@@ -169,9 +169,6 @@ export default function Home() {
 
           {activeTab === "orbslam3" && (
             <div className="mt-6 border-t border-black/5 pt-6 dark:border-white/10">
-              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
-                HKU MARS dataset leaderboards
-              </p>
               <OrbslamDatasetTabs
                 activeDataset={activeOrbslamDataset}
                 onDatasetChange={handleOrbslamDatasetChange}
