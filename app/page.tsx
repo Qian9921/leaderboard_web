@@ -9,6 +9,7 @@ import LeaderboardTable from "./components/LeaderboardTable";
 import UploadModal from "./components/UploadModal";
 import { LeaderboardType, LeaderboardEntry } from "@/lib/types";
 import { leaderboardConfigs } from "@/lib/leaderboard-config";
+import { normalizeLeaderboardEntries } from "@/lib/leaderboard-data";
 import { cn } from "@/lib/utils";
 import { getSupabaseClient } from "@/lib/supabase";
 import {
@@ -40,6 +41,7 @@ export default function Home() {
       setLeaderboardData(rankedEntries);
     } catch (error) {
       console.error("Failed to fetch leaderboard:", error);
+      setLeaderboardData([]);
     } finally {
       setIsLoading(false);
     }
@@ -255,7 +257,8 @@ async function fetchBaseEntries(
     throw new Error(`Failed to load leaderboard data from ${dataUrl}`);
   }
 
-  return await response.json();
+  const payload = await response.json();
+  return normalizeLeaderboardEntries(payload);
 }
 
 async function fetchRemoteEntries(

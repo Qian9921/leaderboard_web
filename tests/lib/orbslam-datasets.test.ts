@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 
 import {
@@ -10,6 +10,7 @@ import {
   getOrbslamSubmissionScope,
   getOrbslamDatasetMeta,
 } from "../../lib/orbslam-datasets";
+import { normalizeLeaderboardEntries } from "../../lib/leaderboard-data";
 
 test("orbslam dataset inventory matches the HKU MARS sequence list", () => {
   assert.equal(DEFAULT_ORBSLAM_DATASET, "AMtown02");
@@ -88,4 +89,34 @@ test("seed data files exist for every ORB-SLAM3 dataset", () => {
       `missing source seed file for ${datasetKey}`
     );
   }
+});
+
+test("every ORB-SLAM3 seed file uses leaderboard array format", () => {
+  const repoRoot = resolve(__dirname, "..", "..");
+  const publicDir = resolve(repoRoot, "public", "data", "orbslam3");
+
+  for (const datasetKey of ORBSLAM_DATASET_KEYS) {
+    const parsed = JSON.parse(
+      readFileSync(resolve(publicDir, `${datasetKey}.json`), "utf8")
+    );
+
+    assert.equal(
+      Array.isArray(parsed),
+      true,
+      `seed file for ${datasetKey} must be a JSON array`
+    );
+  }
+});
+
+test("leaderboard payload normalizer accepts either a single entry or an array", () => {
+  const singleEntry = {
+    groupName: "Placeholder Seed (AMtown01)",
+    ate_rmse_m: 999.1234,
+    rpe_trans_drift_m_per_m: 9.87654,
+    rpe_rot_drift_deg_per_100m: 999.54321,
+    completeness_pct: 12.34,
+  };
+
+  assert.deepEqual(normalizeLeaderboardEntries(singleEntry), [singleEntry]);
+  assert.deepEqual(normalizeLeaderboardEntries([singleEntry]), [singleEntry]);
 });
