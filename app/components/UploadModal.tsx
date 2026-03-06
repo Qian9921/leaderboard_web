@@ -7,11 +7,17 @@ import { LeaderboardType } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { leaderboardConfigs } from "@/lib/leaderboard-config";
 import { getSupabaseClient } from "@/lib/supabase";
+import {
+  DEFAULT_ORBSLAM_DATASET,
+  getOrbslamSubmissionScope,
+  type OrbslamDatasetKey,
+} from "@/lib/orbslam-datasets";
 
 interface UploadModalProps {
   isOpen: boolean;
   onClose: () => void;
   leaderboardType: LeaderboardType;
+  orbslamDatasetKey?: OrbslamDatasetKey;
   onUploadSuccess: () => void;
 }
 
@@ -19,12 +25,14 @@ export default function UploadModal({
   isOpen,
   onClose,
   leaderboardType,
+  orbslamDatasetKey,
   onUploadSuccess,
 }: UploadModalProps) {
   const [jsonData, setJsonData] = useState("");
   const [isUploading, setIsUploading] = useState(false);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState("");
+  const uploadPlaceholder = buildUploadPlaceholder(leaderboardType);
 
   const handleUpload = async () => {
     setIsUploading(true);
@@ -34,7 +42,11 @@ export default function UploadModal({
     try {
       const data = parseAndValidateSubmission(jsonData, leaderboardType);
       
-      await upsertSubmissionToSupabase(leaderboardType, data);
+      await upsertSubmissionToSupabase(
+        leaderboardType,
+        data,
+        orbslamDatasetKey
+      );
 
       
       
@@ -97,6 +109,17 @@ export default function UploadModal({
                 </div>
               </div>
 
+              {leaderboardType === "orbslam3" && (
+                <div>
+                  <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
+                    Dataset
+                  </label>
+                  <div className="px-4 py-2 bg-gray-100 dark:bg-gray-800 rounded-lg font-mono">
+                    {orbslamDatasetKey ?? DEFAULT_ORBSLAM_DATASET}
+                  </div>
+                </div>
+              )}
+
               <div>
                 <label className="block text-sm font-semibold mb-2 text-gray-700 dark:text-gray-300">
                   JSON Data
@@ -104,7 +127,7 @@ export default function UploadModal({
                 <textarea
                   value={jsonData}
                   onChange={(e) => setJsonData(e.target.value)}
-                  placeholder={`{\n  \"group_name\": \"Team Alpha\",\n  \"project_private_repo_url\": \"https://github.com/yourusername/project.git\",\n  \"metrics\": {\n    \"miou\": 72.73,\n    \"dice_score\": 39.80,\n    \"fwiou\": 88.85\n  }\n}`}
+                  placeholder={uploadPlaceholder}
                   className={cn(
                     "w-full h-64 px-4 py-3 font-mono text-sm rounded-lg border-2 transition-colors",
                     "bg-gray-50 dark:bg-gray-800",
@@ -187,9 +210,17 @@ export default function UploadModal({
 }
 
 
-async function upsertSubmissionToSupabase(leaderboardType: LeaderboardType, submission: any) {
+async function upsertSubmissionToSupabase(
+  leaderboardType: LeaderboardType,
+  submission: any,
+  orbslamDatasetKey?: OrbslamDatasetKey
+) {
   const supabase = getSupabaseClient();
   const config = leaderboardConfigs[leaderboardType];
+  const submissionScope =
+    leaderboardType === "orbslam3"
+      ? getOrbslamSubmissionScope(orbslamDatasetKey ?? DEFAULT_ORBSLAM_DATASET)
+      : leaderboardType;
 
   const metrics: Record<string, number> = {};
   for (const metric of config.metrics) {
@@ -197,7 +228,7 @@ async function upsertSubmissionToSupabase(leaderboardType: LeaderboardType, subm
   }
 
   const payload = {
-    leaderboard_type: leaderboardType,
+    leaderboard_type: submissionScope,
     group_name: submission.groupName,
     project_private_repo_url: submission.projectPrivateRepoUrl,
     github_username: submission.githubUsername ?? null,
@@ -262,4 +293,14 @@ function parseAndValidateSubmission(jsonString: string, leaderboardType: Leaderb
     githubUsername,
     metrics,
   };
+}
+
+function buildUploadPlaceholder(
+  leaderboardType: LeaderboardType
+): string {
+  if (leaderboardType === "orbslam3") {
+    return `{\n  \"group_name\": \"Team Alpha\",\n  \"project_private_repo_url\": \"https://github.com/yourusername/project.git\",\n  \"metrics\": {\n    \"ate_rmse_m\": 88.2281,\n    \"rpe_trans_drift_m_per_m\": 2.04084,\n    \"rpe_rot_drift_deg_per_100m\": 76.69911,\n    \"completeness_pct\": 95.73\n  }\n}`;
+  }
+
+  return `{\n  \"group_name\": \"Team Alpha\",\n  \"project_private_repo_url\": \"https://github.com/yourusername/project.git\",\n  \"metrics\": {\n    \"miou\": 72.73,\n    \"dice_score\": 39.80,\n    \"fwiou\": 88.85\n  }\n}`;
 }

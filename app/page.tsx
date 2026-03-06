@@ -4,24 +4,37 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Trophy, Upload as UploadIcon, RefreshCw, GraduationCap } from "lucide-react";
 import LeaderboardTabs from "./components/LeaderboardTabs";
+import OrbslamDatasetTabs from "./components/OrbslamDatasetTabs";
 import LeaderboardTable from "./components/LeaderboardTable";
 import UploadModal from "./components/UploadModal";
 import { LeaderboardType, LeaderboardEntry } from "@/lib/types";
 import { leaderboardConfigs } from "@/lib/leaderboard-config";
 import { cn } from "@/lib/utils";
 import { getSupabaseClient } from "@/lib/supabase";
+import {
+  DEFAULT_ORBSLAM_DATASET,
+  getOrbslamDataUrl,
+  getOrbslamDatasetMeta,
+  getOrbslamSubmissionScope,
+  type OrbslamDatasetKey,
+} from "@/lib/orbslam-datasets";
 
 export default function Home() {
   const [activeTab, setActiveTab] = useState<LeaderboardType>("orbslam3");
+  const [activeOrbslamDataset, setActiveOrbslamDataset] =
+    useState<OrbslamDatasetKey>(DEFAULT_ORBSLAM_DATASET);
   const [leaderboardData, setLeaderboardData] = useState<LeaderboardEntry[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
 
-  const fetchLeaderboard = async (type: LeaderboardType) => {
+  const fetchLeaderboard = async (
+    type: LeaderboardType,
+    orbslamDatasetKey: OrbslamDatasetKey
+  ) => {
     setIsLoading(true);
     try {
-      const baseEntries = await fetchBaseEntries(type);
-      const remoteEntries = await fetchRemoteEntries(type);
+      const baseEntries = await fetchBaseEntries(type, orbslamDatasetKey);
+      const remoteEntries = await fetchRemoteEntries(type, orbslamDatasetKey);
       const mergedEntries = mergeWithRemoteEntries(baseEntries, remoteEntries);
       const rankedEntries = rankEntries(type, mergedEntries);
       setLeaderboardData(rankedEntries);
@@ -33,22 +46,27 @@ export default function Home() {
   };
 
   useEffect(() => {
-    fetchLeaderboard(activeTab);
-  }, [activeTab]);
+    fetchLeaderboard(activeTab, activeOrbslamDataset);
+  }, [activeTab, activeOrbslamDataset]);
 
   const handleTabChange = (tab: LeaderboardType) => {
     setActiveTab(tab);
   };
 
+  const handleOrbslamDatasetChange = (datasetKey: OrbslamDatasetKey) => {
+    setActiveOrbslamDataset(datasetKey);
+  };
+
   const handleRefresh = () => {
-    fetchLeaderboard(activeTab);
+    fetchLeaderboard(activeTab, activeOrbslamDataset);
   };
 
   const handleUploadSuccess = () => {
-    fetchLeaderboard(activeTab);
+    fetchLeaderboard(activeTab, activeOrbslamDataset);
   };
 
   const config = leaderboardConfigs[activeTab];
+  const activeOrbslamDatasetMeta = getOrbslamDatasetMeta(activeOrbslamDataset);
 
   return (
     <div className="min-h-screen px-4 py-10 md:px-10 lg:px-14 lg:py-14">
@@ -104,9 +122,21 @@ export default function Home() {
               <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-1">
                 {config.title}
               </h2>
-              <p className="text-gray-600 dark:text-gray-300">
-                {config.description}
-              </p>
+              {activeTab === "orbslam3" ? (
+                <div className="space-y-1 text-gray-600 dark:text-gray-300">
+                  <p className="text-sm font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+                    Dataset · {activeOrbslamDatasetMeta.label}
+                  </p>
+                  <p className="font-medium">
+                    {activeOrbslamDatasetMeta.scene}
+                  </p>
+                  <p>{activeOrbslamDatasetMeta.summary}</p>
+                </div>
+              ) : (
+                <p className="text-gray-600 dark:text-gray-300">
+                  {config.description}
+                </p>
+              )}
             </div>
             <div className="flex gap-3">
               <button
@@ -134,6 +164,18 @@ export default function Home() {
               </button>
             </div>
           </div>
+
+          {activeTab === "orbslam3" && (
+            <div className="mt-6 border-t border-black/5 pt-6 dark:border-white/10">
+              <p className="mb-3 text-sm font-semibold uppercase tracking-[0.18em] text-gray-500 dark:text-gray-400">
+                HKU MARS dataset leaderboards
+              </p>
+              <OrbslamDatasetTabs
+                activeDataset={activeOrbslamDataset}
+                onDatasetChange={handleOrbslamDatasetChange}
+              />
+            </div>
+          )}
         </div>
 
         {/* Leaderboard Table */}
@@ -148,10 +190,14 @@ export default function Home() {
         ) : leaderboardData.length > 0 ? (
           <div className="rounded-3xl bg-white/95 dark:bg-gray-900/70 backdrop-blur border border-black/5 dark:border-white/10 shadow-sm">
             <LeaderboardTable
+              key={`${activeTab}-${activeTab === "orbslam3" ? activeOrbslamDataset : "default"}`}
               entries={leaderboardData}
               metrics={config.metrics}
               primaryMetric={config.metrics[0].key}
               leaderboardType={activeTab}
+              orbslamDatasetKey={
+                activeTab === "orbslam3" ? activeOrbslamDataset : undefined
+              }
               onDeleteSuccess={handleRefresh}
             />
           </div>
@@ -169,6 +215,9 @@ export default function Home() {
         isOpen={isUploadModalOpen}
         onClose={() => setIsUploadModalOpen(false)}
         leaderboardType={activeTab}
+        orbslamDatasetKey={
+          activeTab === "orbslam3" ? activeOrbslamDataset : undefined
+        }
         onUploadSuccess={handleUploadSuccess}
       />
 
@@ -191,19 +240,38 @@ export default function Home() {
   );
 }
 
-async function fetchBaseEntries(type: LeaderboardType): Promise<LeaderboardEntry[]> {
+async function fetchBaseEntries(
+  type: LeaderboardType,
+  orbslamDatasetKey: OrbslamDatasetKey
+): Promise<LeaderboardEntry[]> {
   const basePath = getBasePath();
-  const response = await fetch(`${basePath}/data/${type}.json`);
+  const dataUrl =
+    type === "orbslam3"
+      ? getOrbslamDataUrl(orbslamDatasetKey, basePath)
+      : `${basePath}/data/${type}.json`;
+  const response = await fetch(dataUrl);
+
+  if (!response.ok) {
+    throw new Error(`Failed to load leaderboard data from ${dataUrl}`);
+  }
+
   return await response.json();
 }
 
-async function fetchRemoteEntries(type: LeaderboardType): Promise<LeaderboardEntry[]> {
+async function fetchRemoteEntries(
+  type: LeaderboardType,
+  orbslamDatasetKey: OrbslamDatasetKey
+): Promise<LeaderboardEntry[]> {
   try {
     const supabase = getSupabaseClient();
+    const submissionScope =
+      type === "orbslam3"
+        ? getOrbslamSubmissionScope(orbslamDatasetKey)
+        : type;
     const { data, error } = await supabase
       .from("submissions")
       .select("leaderboard_type, group_name, project_private_repo_url, github_username, metrics, submitted_at")
-      .eq("leaderboard_type", type);
+      .eq("leaderboard_type", submissionScope);
 
     if (error) {
       throw error;

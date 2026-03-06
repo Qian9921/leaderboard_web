@@ -5,6 +5,7 @@ A modern, gamified leaderboard web application for displaying student performanc
 ## 🎯 Features
 
 - **Two Leaderboards**: UNet Image Segmentation, ORB-SLAM3 Visual SLAM
+- **23 ORB-SLAM3 Dataset Leaderboards**: one HKU MARS sub-leaderboard under the ORB-SLAM3 tab for each supported dataset sequence
 - **Real-time Ranking**: Automatic ranking based on various metrics
 - **Multi-metric Sorting**: Click on any column header to sort by that metric (ascending/descending)
 - **Gamified Design**:
@@ -94,7 +95,11 @@ Run this in Supabase SQL editor:
 ```sql
 -- Shared submissions table for AAE5303 leaderboard
 create table if not exists public.submissions (
-  leaderboard_type text not null check (leaderboard_type in ('unet', 'orbslam3')),
+  leaderboard_type text not null check (
+    leaderboard_type = 'unet'
+    or leaderboard_type = 'orbslam3'
+    or leaderboard_type like 'orbslam3:%'
+  ),
   group_name text not null,
   project_private_repo_url text not null,
   github_username text,
@@ -287,13 +292,36 @@ Metrics are reported as percentages (0 to 100).
 
 **Note**: Submission time is recorded automatically by the database when you upload. Do not include it in your JSON.
 
+### ORB-SLAM3 Dataset Layout
+
+The ORB-SLAM3 leaderboard is now split into dataset-specific sub-leaderboards under the existing ORB-SLAM3 tab. The dataset is selected in the UI, so the JSON payload format above stays unchanged.
+
+- `AMtown02` keeps the original real seed data
+- every other HKU MARS dataset starts with one clearly fake placeholder entry
+- local seed files now live under:
+  - `public/data/orbslam3/<dataset>.json`
+  - `data/orbslam3/<dataset>.json`
+
+Representative examples:
+
+- `public/data/orbslam3/AMtown02.json`
+- `public/data/orbslam3/AMtown01.json`
+- `public/data/orbslam3/HKairport01.json`
+- `public/data/orbslam3/Featureless_GNSS03.json`
+
+Remote submission scopes are:
+
+- `orbslam3` for `AMtown02` to preserve backward compatibility
+- `orbslam3:<dataset>` for every other ORB-SLAM3 dataset
+
 ## 🎮 Usage
 
 ### View Leaderboards
 
 1. Click on the tabs at the top to switch between different leaderboards
-2. Click on any metric column header to sort by that metric
-3. Click again to toggle between ascending/descending order
+2. Inside ORB-SLAM3, click a dataset chip to switch to a specific HKU MARS sequence leaderboard
+3. Click on any metric column header to sort by that metric
+4. Click again to toggle between ascending/descending order
 
 ### Upload Submission
 

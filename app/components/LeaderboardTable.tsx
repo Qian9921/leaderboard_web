@@ -3,14 +3,20 @@
 import { useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUp, ArrowDown, Github, Trash2 } from "lucide-react";
-import { LeaderboardEntry, MetricConfig } from "@/lib/types";
+import { LeaderboardEntry, LeaderboardType, MetricConfig } from "@/lib/types";
+import {
+  DEFAULT_ORBSLAM_DATASET,
+  getOrbslamSubmissionScope,
+  type OrbslamDatasetKey,
+} from "@/lib/orbslam-datasets";
 import { sortEntries, getRankBadge, formatDate, cn } from "@/lib/utils";
 
 interface LeaderboardTableProps {
   entries: LeaderboardEntry[];
   metrics: MetricConfig[];
   primaryMetric: string;
-  leaderboardType: string;
+  leaderboardType: LeaderboardType;
+  orbslamDatasetKey?: OrbslamDatasetKey;
   onDeleteSuccess?: () => void;
 }
 
@@ -19,30 +25,28 @@ export default function LeaderboardTable({
   metrics,
   primaryMetric,
   leaderboardType,
+  orbslamDatasetKey,
   onDeleteSuccess,
 }: LeaderboardTableProps) {
-  // Default: first metric, descending
   const [sortKey, setSortKey] = useState<string>(primaryMetric);
   const [sortAscending, setSortAscending] = useState<boolean>(false);
 
-  // Handle column sort
-  // User requirement: first click => ascending, second click => descending
   const handleSort = (key: string) => {
     if (sortKey === key) {
       setSortAscending(!sortAscending);
-    } else {
-      setSortKey(key);
-      setSortAscending(true);
+      return;
     }
+
+    setSortKey(key);
+    setSortAscending(true);
   };
 
-  // Sort entries based on current sort configuration
   const sortedEntries = sortEntries(entries, sortKey, sortAscending);
 
   const getMetricDomain = (key: string): { min: number; max: number } => {
     const values = sortedEntries
-      .map((e: any) => e[key])
-      .filter((v: any) => typeof v === "number" && !Number.isNaN(v));
+      .map((entry) => getEntryValue(entry, key))
+      .filter((value): value is number => typeof value === "number" && !Number.isNaN(value));
 
     if (values.length === 0) {
       return { min: 0, max: 1 };
@@ -57,25 +61,31 @@ export default function LeaderboardTable({
     max: number,
     higherIsBetter: boolean
   ): number => {
-    if (max <= min) return 100;
+    if (max <= min) {
+      return 100;
+    }
+
     const normalized = (value - min) / (max - min);
     const score = higherIsBetter ? normalized : 1 - normalized;
     return Math.max(0, Math.min(100, score * 100));
   };
 
-  const renderRepoCell = (projectPrivateRepoUrl?: string, githubUsername?: string) => {
+  const renderRepoCell = (
+    projectPrivateRepoUrl?: string,
+    githubUsername?: string
+  ) => {
     if (projectPrivateRepoUrl) {
-    return (
-      <a
-        href={projectPrivateRepoUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        className="flex items-center gap-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
-      >
-        <Github size={16} />
-        <span className="truncate max-w-[220px]">{projectPrivateRepoUrl}</span>
-      </a>
-    );
+      return (
+        <a
+          href={projectPrivateRepoUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex items-center gap-2 text-slate-700 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
+        >
+          <Github size={16} />
+          <span className="max-w-[220px] truncate">{projectPrivateRepoUrl}</span>
+        </a>
+      );
     }
 
     if (!githubUsername) {
@@ -87,7 +97,7 @@ export default function LeaderboardTable({
         href={`https://github.com/${githubUsername}`}
         target="_blank"
         rel="noopener noreferrer"
-        className="flex items-center gap-2 text-slate-700 hover:text-slate-900 dark:text-slate-300 dark:hover:text-white transition-colors"
+        className="flex items-center gap-2 text-slate-700 transition-colors hover:text-slate-900 dark:text-slate-300 dark:hover:text-white"
       >
         <Github size={16} />
         <span>{githubUsername}</span>
@@ -99,12 +109,21 @@ export default function LeaderboardTable({
     const confirmed = window.confirm(
       "Are you sure you want to delete this submission?"
     );
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
-    const deleteKeyRaw = window.prompt("Enter delete key to remove this submission:");
-    if (!deleteKeyRaw) return;
+    const deleteKeyRaw = window.prompt(
+      "Enter delete key to remove this submission:"
+    );
+    if (!deleteKeyRaw) {
+      return;
+    }
+
     const deleteKey = deleteKeyRaw.trim();
-    if (!deleteKey) return;
+    if (!deleteKey) {
+      return;
+    }
 
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -114,19 +133,29 @@ export default function LeaderboardTable({
     }
 
     try {
-      const response = await fetch(`${supabaseUrl}/functions/v1/delete-submission`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${anonKey}`,
-          apikey: anonKey,
-        },
-        body: JSON.stringify({
-          leaderboard_type: leaderboardType,
-          group_name: groupName,
-          delete_key: deleteKey,
-        }),
-      });
+      const submissionScope =
+        leaderboardType === "orbslam3"
+          ? getOrbslamSubmissionScope(
+              orbslamDatasetKey ?? DEFAULT_ORBSLAM_DATASET
+            )
+          : leaderboardType;
+
+      const response = await fetch(
+        `${supabaseUrl}/functions/v1/delete-submission`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${anonKey}`,
+            apikey: anonKey,
+          },
+          body: JSON.stringify({
+            leaderboard_type: submissionScope,
+            group_name: groupName,
+            delete_key: deleteKey,
+          }),
+        }
+      );
 
       if (!response.ok) {
         const payload = await response.json().catch(() => ({}));
@@ -135,8 +164,8 @@ export default function LeaderboardTable({
       }
 
       onDeleteSuccess?.();
-    } catch (err) {
-      console.error("Failed to delete submission:", err);
+    } catch (error) {
+      console.error("Failed to delete submission:", error);
       window.alert("Delete failed. Please check the key and try again.");
     }
   };
@@ -152,7 +181,7 @@ export default function LeaderboardTable({
             {metrics.map((metric) => (
               <th
                 key={metric.key}
-                className="px-6 py-4 text-left font-semibold cursor-pointer hover:bg-white/10 transition-colors"
+                className="cursor-pointer px-6 py-4 text-left font-semibold transition-colors hover:bg-white/10"
                 onClick={() => handleSort(metric.key)}
               >
                 <div className="flex items-center gap-2">
@@ -177,7 +206,7 @@ export default function LeaderboardTable({
               </th>
             ))}
             <th
-              className="px-6 py-4 text-left font-semibold cursor-pointer hover:bg-white/10 transition-colors"
+              className="cursor-pointer px-6 py-4 text-left font-semibold transition-colors hover:bg-white/10"
               onClick={() => handleSort("submissionDate")}
             >
               <div className="flex items-center gap-2">
@@ -214,7 +243,7 @@ export default function LeaderboardTable({
                   exit={{ opacity: 0, y: -20 }}
                   transition={{ delay: index * 0.05 }}
                   className={cn(
-                    "border-b border-gray-200/70 dark:border-gray-700/70 hover:bg-gray-50/70 dark:hover:bg-gray-800/70 transition-colors",
+                    "border-b border-gray-200/70 transition-colors hover:bg-gray-50/70 dark:border-gray-700/70 dark:hover:bg-gray-800/70",
                     rank <= 3 && "bg-amber-50/60 dark:bg-amber-900/10"
                   )}
                 >
@@ -230,12 +259,7 @@ export default function LeaderboardTable({
                           {rankBadge.emoji}
                         </motion.span>
                       )}
-                      <span
-                        className={cn(
-                          "font-bold text-lg",
-                          rankBadge.color
-                        )}
-                      >
+                      <span className={cn("text-lg font-bold", rankBadge.color)}>
                         #{rank}
                       </span>
                     </div>
@@ -244,13 +268,22 @@ export default function LeaderboardTable({
                     {entry.groupName}
                   </td>
                   <td className="px-6 py-4">
-                    {renderRepoCell(entry.projectPrivateRepoUrl, entry.githubUsername)}
+                    {renderRepoCell(
+                      entry.projectPrivateRepoUrl,
+                      entry.githubUsername
+                    )}
                   </td>
                   {metrics.map((metric) => {
-                    const value = (entry as any)[metric.key];
+                    const rawValue = getEntryValue(entry, metric.key);
+                    const value = typeof rawValue === "number" ? rawValue : Number.NaN;
                     const formattedValue = metric.format
                       ? metric.format(value)
-                      : value;
+                      : rawValue;
+                    const displayValue =
+                      typeof formattedValue === "string" ||
+                      typeof formattedValue === "number"
+                        ? formattedValue
+                        : String(formattedValue ?? "—");
                     const { min, max } = getMetricDomain(metric.key);
                     const barWidth = getMetricBarWidthPct(
                       value,
@@ -262,33 +295,32 @@ export default function LeaderboardTable({
                     return (
                       <td key={metric.key} className="px-6 py-4">
                         <div className="flex flex-col gap-1">
-                          <span className="font-semibold">{formattedValue}</span>
-                          {/* Performance indicator */}
-                          <div className="h-1.5 w-full bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+                          <span className="font-semibold">{displayValue}</span>
+                          <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
                             <motion.div
                               initial={{ width: 0 }}
                               animate={{ width: "100%" }}
                               transition={{ delay: index * 0.05 + 0.2 }}
                               className={cn(
                                 "h-full rounded-full",
-                                rank <= 3 ? "bg-gradient-to-r from-green-400 to-green-600" : "bg-blue-500"
+                                rank <= 3
+                                  ? "bg-gradient-to-r from-green-400 to-green-600"
+                                  : "bg-blue-500"
                               )}
-                              style={{
-                                width: `${barWidth}%`,
-                              }}
+                              style={{ width: `${barWidth}%` }}
                             />
                           </div>
                         </div>
                       </td>
                     );
                   })}
-                  <td className="px-6 py-4 text-sm text-gray-600 dark:text-gray-400 whitespace-nowrap">
+                  <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                     {entry.submissionDate ? formatDate(entry.submissionDate) : "—"}
                   </td>
                   <td className="px-6 py-4">
                     <button
                       onClick={() => handleDelete(entry.groupName)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200/80 dark:border-gray-700/70 px-3 py-1.5 text-xs font-medium text-gray-700 hover:text-gray-900 dark:text-gray-300 dark:hover:text-white hover:bg-gray-100/70 dark:hover:bg-gray-800/70 transition-colors"
+                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200/80 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100/70 hover:text-gray-900 dark:border-gray-700/70 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white"
                     >
                       <Trash2 size={14} />
                       Delete
@@ -304,3 +336,6 @@ export default function LeaderboardTable({
   );
 }
 
+function getEntryValue(entry: LeaderboardEntry, key: string): unknown {
+  return (entry as any)[key];
+}
