@@ -18,6 +18,13 @@ export interface DatasetSceneGroup {
   datasets: OrbslamDatasetMeta[];
 }
 
+export interface SceneSummary {
+  id: Exclude<DatasetSceneGroupId, "all">;
+  label: string;
+  datasetCount: number;
+  description: string;
+}
+
 interface DatasetFilterOptions {
   query: string;
   sceneFilter: DatasetSceneGroupId;
@@ -43,6 +50,14 @@ const GROUP_LABELS: Record<Exclude<DatasetSceneGroupId, "all">, string> = {
   airport: "Airport",
   island: "Island",
   featureless: "Featureless",
+};
+
+const GROUP_DESCRIPTIONS: Record<Exclude<DatasetSceneGroupId, "all">, string> = {
+  town: "Compact urban-style routes with repeated street geometry and dense landmarks.",
+  valley: "Open-terrain routes that emphasize scale drift across large natural structure.",
+  airport: "Large-scale airport routes with runway geometry, GNSS variants, and evening conditions.",
+  island: "Dense city routes with high-rise facades, waterfront transitions, and GNSS variants.",
+  featureless: "Low-texture routes designed to stress tracking when landmarks are scarce.",
 };
 
 export const DATASET_SCENE_FILTERS: Array<{
@@ -122,6 +137,37 @@ export function buildDatasetSelectorStats(
       datasets.find((dataset) => dataset.key === activeDatasetKey)?.label ??
       activeDatasetKey,
   };
+}
+
+export function buildSceneSummaries(
+  datasets: OrbslamDatasetMeta[]
+): SceneSummary[] {
+  return groupDatasetsByScene(datasets).map((group) => ({
+    id: group.id,
+    label: group.label,
+    datasetCount: group.datasets.length,
+    description: GROUP_DESCRIPTIONS[group.id],
+  }));
+}
+
+export function getDatasetsForScene(
+  datasets: OrbslamDatasetMeta[],
+  sceneId: Exclude<DatasetSceneGroupId, "all">
+): OrbslamDatasetMeta[] {
+  return datasets.filter(
+    (dataset) => getDatasetSceneGroupId(dataset) === sceneId
+  );
+}
+
+export function filterDatasetsByScene(
+  datasets: OrbslamDatasetMeta[],
+  sceneId: Exclude<DatasetSceneGroupId, "all">,
+  query: string
+): OrbslamDatasetMeta[] {
+  return filterDatasets(getDatasetsForScene(datasets, sceneId), {
+    query,
+    sceneFilter: sceneId,
+  });
 }
 
 export function getDatasetSceneGroupId(

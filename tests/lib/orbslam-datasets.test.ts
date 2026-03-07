@@ -14,7 +14,10 @@ import {
 import { normalizeLeaderboardEntries } from "../../lib/leaderboard-data";
 import {
   buildDatasetSelectorStats,
+  buildSceneSummaries,
+  filterDatasetsByScene,
   filterDatasets,
+  getDatasetsForScene,
   groupDatasetsByScene,
 } from "../../lib/orbslam-dataset-selector";
 
@@ -184,4 +187,53 @@ test("dataset selector stats summarize the explorer state", () => {
     totalGroups: 5,
     activeDatasetLabel: "AMtown02",
   });
+});
+
+test("scene summaries support step-one scene selection cards", () => {
+  const summaries = buildSceneSummaries(ORBSLAM_DATASETS);
+
+  assert.deepEqual(
+    summaries.map((summary) => summary.id),
+    ["town", "valley", "airport", "island", "featureless"]
+  );
+  assert.deepEqual(
+    summaries.map((summary) => summary.datasetCount),
+    [3, 3, 7, 7, 3]
+  );
+  assert.equal(summaries[2].label, "Airport");
+});
+
+test("getDatasetsForScene returns only datasets in the chosen scene", () => {
+  assert.deepEqual(
+    getDatasetsForScene(ORBSLAM_DATASETS, "town").map((dataset) => dataset.key),
+    ["AMtown01", "AMtown02", "AMtown03"]
+  );
+
+  assert.deepEqual(
+    getDatasetsForScene(ORBSLAM_DATASETS, "featureless").map(
+      (dataset) => dataset.key
+    ),
+    ["Featureless_GNSS01", "Featureless_GNSS02", "Featureless_GNSS03"]
+  );
+});
+
+test("scene-scoped dataset search only filters within the active scene", () => {
+  assert.deepEqual(
+    filterDatasetsByScene(ORBSLAM_DATASETS, "airport", "gnss").map(
+      (dataset) => dataset.key
+    ),
+    [
+      "HKairport_GNSS01",
+      "HKairport_GNSS02",
+      "HKairport_GNSS03",
+      "HKairport_GNSS_Evening",
+    ]
+  );
+
+  assert.deepEqual(
+    filterDatasetsByScene(ORBSLAM_DATASETS, "town", "gnss").map(
+      (dataset) => dataset.key
+    ),
+    []
+  );
 });
