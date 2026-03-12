@@ -119,15 +119,35 @@ test("every ORB-SLAM3 seed file uses leaderboard array format", () => {
 
 test("leaderboard payload normalizer accepts either a single entry or an array", () => {
   const singleEntry = {
-    groupName: "Placeholder Seed (AMtown01)",
-    ate_rmse_m: 999.1234,
-    rpe_trans_drift_m_per_m: 9.87654,
-    rpe_rot_drift_deg_per_100m: 999.54321,
-    completeness_pct: 12.34,
+    groupName: "Example Team",
+    ate_rmse_m: 1.2345,
+    rpe_trans_drift_m_per_m: 0.01234,
+    rpe_rot_drift_deg_per_100m: 0.54321,
+    completeness_pct: 98.76,
   };
 
   assert.deepEqual(normalizeLeaderboardEntries(singleEntry), [singleEntry]);
   assert.deepEqual(normalizeLeaderboardEntries([singleEntry]), [singleEntry]);
+});
+
+test("non-default ORB-SLAM3 dataset files no longer contain placeholder seed rows", () => {
+  const repoRoot = resolve(__dirname, "..", "..");
+  const publicDir = resolve(repoRoot, "public", "data", "orbslam3");
+  const datasetKeysWithoutBaseline = ORBSLAM_DATASET_KEYS.filter(
+    (datasetKey) => datasetKey !== DEFAULT_ORBSLAM_DATASET
+  );
+
+  for (const datasetKey of datasetKeysWithoutBaseline) {
+    const parsed = JSON.parse(
+      readFileSync(resolve(publicDir, `${datasetKey}.json`), "utf8")
+    );
+
+    assert.deepEqual(
+      parsed,
+      [],
+      `${datasetKey} should not retain placeholder seed rows`
+    );
+  }
 });
 
 test("dataset selector groups datasets into stable product scene sections", () => {

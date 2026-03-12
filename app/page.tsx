@@ -15,6 +15,7 @@ import UploadModal from "./components/UploadModal";
 import { LeaderboardType, LeaderboardEntry } from "@/lib/types";
 import { leaderboardConfigs } from "@/lib/leaderboard-config";
 import { normalizeLeaderboardEntries } from "@/lib/leaderboard-data";
+import { mergeLeaderboardEntries } from "@/lib/leaderboard-entries";
 import { cn } from "@/lib/utils";
 import { getSupabaseClient } from "@/lib/supabase";
 import {
@@ -40,7 +41,7 @@ export default function Home() {
     try {
       const baseEntries = await fetchBaseEntries(type, orbslamDatasetKey);
       const remoteEntries = await fetchRemoteEntries(type, orbslamDatasetKey);
-      const mergedEntries = mergeWithRemoteEntries(baseEntries, remoteEntries);
+      const mergedEntries = mergeLeaderboardEntries(baseEntries, remoteEntries);
       const rankedEntries = rankEntries(type, mergedEntries);
       setLeaderboardData(rankedEntries);
     } catch (error) {
@@ -300,17 +301,6 @@ async function fetchRemoteEntries(
     console.warn("Supabase remote fetch disabled:", error);
     return [];
   }
-}
-
-function mergeWithRemoteEntries(
-  baseEntries: LeaderboardEntry[],
-  remoteEntries: LeaderboardEntry[]
-): LeaderboardEntry[] {
-  const groupNames = new Set(remoteEntries.map((entry) => entry.groupName));
-  return [
-    ...remoteEntries,
-    ...baseEntries.filter((entry) => !groupNames.has(entry.groupName)),
-  ];
 }
 
 function rankEntries(

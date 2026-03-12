@@ -9,6 +9,7 @@ export interface BaseLeaderboardEntry {
   githubUsername?: string;
   submissionDate?: string;
   rank?: number;
+  entrySource?: "seed" | "submission";
 }
 
 // UNet (Image Segmentation) metrics

@@ -9,6 +9,7 @@ import {
   getOrbslamSubmissionScope,
   type OrbslamDatasetKey,
 } from "@/lib/orbslam-datasets";
+import { canDeleteEntry } from "@/lib/leaderboard-entries";
 import { sortEntries, getRankBadge, formatDate, cn } from "@/lib/utils";
 
 interface LeaderboardTableProps {
@@ -265,7 +266,14 @@ export default function LeaderboardTable({
                     </div>
                   </td>
                   <td className="px-6 py-4 font-semibold text-gray-900 dark:text-white">
-                    {entry.groupName}
+                    <div className="flex flex-col gap-1">
+                      <span>{entry.groupName}</span>
+                      {entry.entrySource === "seed" && (
+                        <span className="text-xs font-medium uppercase tracking-[0.14em] text-gray-500 dark:text-gray-400">
+                          Seed entry
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-6 py-4">
                     {renderRepoCell(
@@ -318,13 +326,20 @@ export default function LeaderboardTable({
                     {entry.submissionDate ? formatDate(entry.submissionDate) : "—"}
                   </td>
                   <td className="px-6 py-4">
-                    <button
-                      onClick={() => handleDelete(entry.groupName)}
-                      className="inline-flex items-center gap-1 rounded-lg border border-gray-200/80 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100/70 hover:text-gray-900 dark:border-gray-700/70 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white"
-                    >
-                      <Trash2 size={14} />
-                      Delete
-                    </button>
+                    {canDeleteEntry(entry) ? (
+                      <button
+                        onClick={() => handleDelete(entry.groupName)}
+                        className="inline-flex items-center gap-1 rounded-lg border border-gray-200/80 px-3 py-1.5 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-100/70 hover:text-gray-900 dark:border-gray-700/70 dark:text-gray-300 dark:hover:bg-gray-800/70 dark:hover:text-white"
+                      >
+                        <Trash2 size={14} />
+                        Delete
+                      </button>
+                    ) : (
+                      <span className="inline-flex items-center gap-1 rounded-lg border border-dashed border-gray-200/80 px-3 py-1.5 text-xs font-medium text-gray-400 dark:border-gray-700/70 dark:text-gray-500">
+                        <Trash2 size={14} />
+                        Static seed
+                      </span>
+                    )}
                   </td>
                 </motion.tr>
               );
