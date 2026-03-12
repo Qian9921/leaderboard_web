@@ -1,5 +1,6 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { resolveDeleteSubmissionFunctionConfig } from "../../../lib/delete-submission-config.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -12,11 +13,11 @@ serve(async (req) => {
   }
 
   try {
-    const deleteKey = Deno.env.get("DELETE_KEY");
-    const supabaseUrl = Deno.env.get("FUNCTION_SUPABASE_URL");
-    const serviceRoleKey = Deno.env.get("FUNCTION_SERVICE_ROLE_KEY");
+    const config = resolveDeleteSubmissionFunctionConfig((name) =>
+      Deno.env.get(name)
+    );
 
-    if (!deleteKey || !supabaseUrl || !serviceRoleKey) {
+    if (!config) {
       return new Response(
         JSON.stringify({ error: "Server not configured." }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -33,14 +34,14 @@ serve(async (req) => {
       );
     }
 
-    if (delete_key !== deleteKey) {
+    if (delete_key !== config.deleteKey) {
       return new Response(
         JSON.stringify({ error: "Invalid delete key." }),
         { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    const supabase = createClient(supabaseUrl, serviceRoleKey);
+    const supabase = createClient(config.supabaseUrl, config.serviceRoleKey);
     const { error } = await supabase
       .from("submissions")
       .delete()
