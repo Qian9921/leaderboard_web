@@ -23,7 +23,7 @@ import {
 
 test("orbslam dataset inventory matches the HKU MARS sequence list", () => {
   assert.equal(DEFAULT_ORBSLAM_DATASET, "AMtown02");
-  assert.equal(ORBSLAM_DATASET_KEYS.length, 23);
+  assert.equal(ORBSLAM_DATASET_KEYS.length, 18);
   assert.deepEqual(ORBSLAM_DATASET_KEYS, [
     "AMtown01",
     "AMtown02",
@@ -37,17 +37,12 @@ test("orbslam dataset inventory matches the HKU MARS sequence list", () => {
     "HKairport_GNSS01",
     "HKairport_GNSS02",
     "HKairport_GNSS03",
-    "HKairport_GNSS_Evening",
     "HKisland01",
     "HKisland02",
     "HKisland03",
     "HKisland_GNSS01",
     "HKisland_GNSS02",
     "HKisland_GNSS03",
-    "HKisland_GNSS_Evening",
-    "Featureless_GNSS01",
-    "Featureless_GNSS02",
-    "Featureless_GNSS03",
   ]);
 });
 
@@ -69,16 +64,16 @@ test("orbslam submission scopes stay backward compatible for AMtown02", () => {
     "orbslam3:AMtown01"
   );
   assert.equal(
-    getOrbslamSubmissionScope("Featureless_GNSS03"),
-    "orbslam3:Featureless_GNSS03"
+    getOrbslamSubmissionScope("HKisland_GNSS03"),
+    "orbslam3:HKisland_GNSS03"
   );
 });
 
 test("dataset metadata is available for descriptive UI copy", () => {
-  const airportNight = getOrbslamDatasetMeta("HKairport_GNSS_Evening");
+  const airportGnss = getOrbslamDatasetMeta("HKairport_GNSS03");
 
-  assert.equal(airportNight.scene, "Hong Kong International Airport");
-  assert.match(airportNight.summary, /Evening/i);
+  assert.equal(airportGnss.scene, "Hong Kong International Airport");
+  assert.match(airportGnss.summary, /terminal-side|apron/i);
 });
 
 test("seed data files exist for every ORB-SLAM3 dataset", () => {
@@ -130,14 +125,11 @@ test("leaderboard payload normalizer accepts either a single entry or an array",
   assert.deepEqual(normalizeLeaderboardEntries([singleEntry]), [singleEntry]);
 });
 
-test("non-default ORB-SLAM3 dataset files no longer contain placeholder seed rows", () => {
+test("all ORB-SLAM3 dataset files are empty except the selected live submissions source", () => {
   const repoRoot = resolve(__dirname, "..", "..");
   const publicDir = resolve(repoRoot, "public", "data", "orbslam3");
-  const datasetKeysWithoutBaseline = ORBSLAM_DATASET_KEYS.filter(
-    (datasetKey) => datasetKey !== DEFAULT_ORBSLAM_DATASET
-  );
 
-  for (const datasetKey of datasetKeysWithoutBaseline) {
+  for (const datasetKey of ORBSLAM_DATASET_KEYS) {
     const parsed = JSON.parse(
       readFileSync(resolve(publicDir, `${datasetKey}.json`), "utf8")
     );
@@ -145,7 +137,7 @@ test("non-default ORB-SLAM3 dataset files no longer contain placeholder seed row
     assert.deepEqual(
       parsed,
       [],
-      `${datasetKey} should not retain placeholder seed rows`
+      `${datasetKey} should not retain static seed rows`
     );
   }
 });
@@ -155,12 +147,12 @@ test("dataset selector groups datasets into stable product scene sections", () =
 
   assert.deepEqual(
     grouped.map((group) => group.id),
-    ["town", "valley", "airport", "island", "featureless"]
+    ["town", "valley", "airport", "island"]
   );
   assert.equal(grouped[0].label, "Town");
   assert.equal(grouped[0].datasets.length, 3);
   assert.equal(grouped[2].label, "Airport");
-  assert.equal(grouped[2].datasets.length, 7);
+  assert.equal(grouped[2].datasets.length, 6);
 });
 
 test("dataset selector search matches dataset ids and scene names", () => {
@@ -175,7 +167,6 @@ test("dataset selector search matches dataset ids and scene names", () => {
       "HKairport_GNSS01",
       "HKairport_GNSS02",
       "HKairport_GNSS03",
-      "HKairport_GNSS_Evening",
     ]
   );
 
@@ -190,12 +181,19 @@ test("dataset selector search matches dataset ids and scene names", () => {
 test("dataset selector scene filter narrows visible datasets", () => {
   const filtered = filterDatasets(ORBSLAM_DATASETS, {
     query: "",
-    sceneFilter: "featureless",
+    sceneFilter: "airport",
   });
 
   assert.deepEqual(
     filtered.map((dataset) => dataset.key),
-    ["Featureless_GNSS01", "Featureless_GNSS02", "Featureless_GNSS03"]
+    [
+      "HKairport01",
+      "HKairport02",
+      "HKairport03",
+      "HKairport_GNSS01",
+      "HKairport_GNSS02",
+      "HKairport_GNSS03",
+    ]
   );
 });
 
@@ -203,8 +201,8 @@ test("dataset selector stats summarize the explorer state", () => {
   const stats = buildDatasetSelectorStats(ORBSLAM_DATASETS, DEFAULT_ORBSLAM_DATASET);
 
   assert.deepEqual(stats, {
-    totalDatasets: 23,
-    totalGroups: 5,
+    totalDatasets: 18,
+    totalGroups: 4,
     activeDatasetLabel: "AMtown02",
   });
 });
@@ -214,11 +212,11 @@ test("scene summaries support step-one scene selection cards", () => {
 
   assert.deepEqual(
     summaries.map((summary) => summary.id),
-    ["town", "valley", "airport", "island", "featureless"]
+    ["town", "valley", "airport", "island"]
   );
   assert.deepEqual(
     summaries.map((summary) => summary.datasetCount),
-    [3, 3, 7, 7, 3]
+    [3, 3, 6, 6]
   );
   assert.equal(summaries[2].label, "Airport");
 });
@@ -230,10 +228,15 @@ test("getDatasetsForScene returns only datasets in the chosen scene", () => {
   );
 
   assert.deepEqual(
-    getDatasetsForScene(ORBSLAM_DATASETS, "featureless").map(
-      (dataset) => dataset.key
-    ),
-    ["Featureless_GNSS01", "Featureless_GNSS02", "Featureless_GNSS03"]
+    getDatasetsForScene(ORBSLAM_DATASETS, "island").map((dataset) => dataset.key),
+    [
+      "HKisland01",
+      "HKisland02",
+      "HKisland03",
+      "HKisland_GNSS01",
+      "HKisland_GNSS02",
+      "HKisland_GNSS03",
+    ]
   );
 });
 
@@ -246,7 +249,6 @@ test("scene-scoped dataset search only filters within the active scene", () => {
       "HKairport_GNSS01",
       "HKairport_GNSS02",
       "HKairport_GNSS03",
-      "HKairport_GNSS_Evening",
     ]
   );
 

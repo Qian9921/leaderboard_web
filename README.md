@@ -5,7 +5,7 @@ A modern, gamified leaderboard web application for displaying student performanc
 ## 🎯 Features
 
 - **Two Leaderboards**: UNet Image Segmentation, ORB-SLAM3 Visual SLAM
-- **23 ORB-SLAM3 Dataset Leaderboards**: one HKU MARS sub-leaderboard under the ORB-SLAM3 tab for each supported dataset sequence
+- **18 ORB-SLAM3 Dataset Leaderboards**: one HKU MARS sub-leaderboard under the ORB-SLAM3 tab for each supported dataset sequence
 - **Real-time Ranking**: Automatic ranking based on various metrics
 - **Multi-metric Sorting**: Click on any column header to sort by that metric (ascending/descending)
 - **Gamified Design**:
@@ -296,8 +296,7 @@ Metrics are reported as percentages (0 to 100).
 
 The ORB-SLAM3 leaderboard is now split into dataset-specific sub-leaderboards under the existing ORB-SLAM3 tab. The dataset is selected in the UI, so the JSON payload format above stays unchanged.
 
-- `AMtown02` keeps the original real seed data
-- every other HKU MARS dataset starts with one clearly fake placeholder entry
+- all supported HKU MARS datasets now start empty and accept live submissions through Supabase
 - local seed files now live under:
   - `public/data/orbslam3/<dataset>.json`
   - `data/orbslam3/<dataset>.json`
@@ -307,7 +306,6 @@ Representative examples:
 - `public/data/orbslam3/AMtown02.json`
 - `public/data/orbslam3/AMtown01.json`
 - `public/data/orbslam3/HKairport01.json`
-- `public/data/orbslam3/Featureless_GNSS03.json`
 
 Remote submission scopes are:
 

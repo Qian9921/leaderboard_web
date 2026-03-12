@@ -9,8 +9,7 @@ export type DatasetSceneGroupId =
   | "town"
   | "valley"
   | "airport"
-  | "island"
-  | "featureless";
+  | "island";
 
 export interface DatasetSceneGroup {
   id: Exclude<DatasetSceneGroupId, "all">;
@@ -41,7 +40,6 @@ const GROUP_ORDER: Exclude<DatasetSceneGroupId, "all">[] = [
   "valley",
   "airport",
   "island",
-  "featureless",
 ];
 
 const GROUP_LABELS: Record<Exclude<DatasetSceneGroupId, "all">, string> = {
@@ -49,15 +47,13 @@ const GROUP_LABELS: Record<Exclude<DatasetSceneGroupId, "all">, string> = {
   valley: "Valley",
   airport: "Airport",
   island: "Island",
-  featureless: "Featureless",
 };
 
 const GROUP_DESCRIPTIONS: Record<Exclude<DatasetSceneGroupId, "all">, string> = {
   town: "Compact urban-style routes with repeated street geometry and dense landmarks.",
   valley: "Open-terrain routes that emphasize scale drift across large natural structure.",
-  airport: "Large-scale airport routes with runway geometry, GNSS variants, and evening conditions.",
+  airport: "Large-scale airport routes with runway geometry and GNSS variants.",
   island: "Dense city routes with high-rise facades, waterfront transitions, and GNSS variants.",
-  featureless: "Low-texture routes designed to stress tracking when landmarks are scarce.",
 };
 
 export const DATASET_SCENE_FILTERS: Array<{
@@ -191,7 +187,7 @@ export function getDatasetSceneGroupId(
     return "island";
   }
 
-  return "featureless";
+  return "town";
 }
 
 export function getDefaultGroupedDatasets(): DatasetSceneGroup[] {

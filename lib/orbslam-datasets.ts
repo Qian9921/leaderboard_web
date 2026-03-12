@@ -11,17 +11,12 @@ export const ORBSLAM_DATASET_KEYS = [
   "HKairport_GNSS01",
   "HKairport_GNSS02",
   "HKairport_GNSS03",
-  "HKairport_GNSS_Evening",
   "HKisland01",
   "HKisland02",
   "HKisland03",
   "HKisland_GNSS01",
   "HKisland_GNSS02",
   "HKisland_GNSS03",
-  "HKisland_GNSS_Evening",
-  "Featureless_GNSS01",
-  "Featureless_GNSS02",
-  "Featureless_GNSS03",
 ] as const;
 
 export type OrbslamDatasetKey = (typeof ORBSLAM_DATASET_KEYS)[number];
@@ -108,12 +103,6 @@ const DATASET_META_BY_KEY: Record<OrbslamDatasetKey, OrbslamDatasetMeta> = {
     scene: "Hong Kong International Airport",
     summary: "Airport GNSS route covering terminal-side structures and open apron regions.",
   },
-  HKairport_GNSS_Evening: {
-    key: "HKairport_GNSS_Evening",
-    label: "HKairport_GNSS_Evening",
-    scene: "Hong Kong International Airport",
-    summary: "Evening airport GNSS route with reduced illumination and stronger appearance shift.",
-  },
   HKisland01: {
     key: "HKisland01",
     label: "HKisland01",
@@ -149,30 +138,6 @@ const DATASET_META_BY_KEY: Record<OrbslamDatasetKey, OrbslamDatasetMeta> = {
     label: "HKisland_GNSS03",
     scene: "Hong Kong Island",
     summary: "Urban island GNSS route balancing open harbor views and dense downtown sections.",
-  },
-  HKisland_GNSS_Evening: {
-    key: "HKisland_GNSS_Evening",
-    label: "HKisland_GNSS_Evening",
-    scene: "Hong Kong Island",
-    summary: "Evening urban GNSS route with lighting changes and lower image contrast.",
-  },
-  Featureless_GNSS01: {
-    key: "Featureless_GNSS01",
-    label: "Featureless_GNSS01",
-    scene: "Featureless Flight",
-    summary: "Feature-poor GNSS route designed to stress tracking under weak visual texture.",
-  },
-  Featureless_GNSS02: {
-    key: "Featureless_GNSS02",
-    label: "Featureless_GNSS02",
-    scene: "Featureless Flight",
-    summary: "Feature-poor GNSS route with long texture-sparse spans and limited landmarks.",
-  },
-  Featureless_GNSS03: {
-    key: "Featureless_GNSS03",
-    label: "Featureless_GNSS03",
-    scene: "Featureless Flight",
-    summary: "Feature-poor GNSS route emphasizing low-texture failure modes across long motion.",
   },
 };
 
