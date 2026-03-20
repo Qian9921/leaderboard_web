@@ -18,6 +18,7 @@ import { normalizeLeaderboardEntries } from "@/lib/leaderboard-data";
 import { mergeLeaderboardEntries } from "@/lib/leaderboard-entries";
 import { cn } from "@/lib/utils";
 import { getSupabaseClient } from "@/lib/supabase";
+import { computeTotalScores } from "@/lib/scoring";
 import {
   DEFAULT_ORBSLAM_DATASET,
   getOrbslamDataUrl,
@@ -201,7 +202,7 @@ export default function Home() {
               key={`${activeTab}-${activeTab === "orbslam3" ? activeOrbslamDataset : "default"}`}
               entries={leaderboardData}
               metrics={config.metrics}
-              primaryMetric={config.metrics[0].key}
+              primaryMetric="totalScore"
               leaderboardType={activeTab}
               orbslamDatasetKey={
                 activeTab === "orbslam3" ? activeOrbslamDataset : undefined
@@ -324,16 +325,14 @@ function rankEntries(
   entries: LeaderboardEntry[]
 ): LeaderboardEntry[] {
   const config = leaderboardConfigs[type];
-  const primaryMetric = config.metrics[0];
+  const scoreMap = computeTotalScores(entries, config.metrics);
 
   return entries
-    .sort((a: any, b: any) => {
-      const aValue = a[primaryMetric.key];
-      const bValue = b[primaryMetric.key];
-      return primaryMetric.higherIsBetter
-        ? bValue - aValue
-        : aValue - bValue;
-    })
+    .map((entry) => ({
+      ...entry,
+      totalScore: scoreMap.get(entry.groupName) ?? 0,
+    }))
+    .sort((a, b) => (b.totalScore ?? 0) - (a.totalScore ?? 0))
     .map((entry, index) => ({
       ...entry,
       rank: index + 1,

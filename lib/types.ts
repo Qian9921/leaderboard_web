@@ -10,6 +10,7 @@ export interface BaseLeaderboardEntry {
   submissionDate?: string;
   rank?: number;
   entrySource?: "seed" | "submission";
+  totalScore?: number;
 }
 
 // UNet (Image Segmentation) metrics
@@ -43,6 +44,7 @@ export interface MetricConfig {
   unit?: string;
   higherIsBetter: boolean;
   format?: (value: number) => string;
+  weight: number;
 }
 
 // API response types

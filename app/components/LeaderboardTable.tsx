@@ -187,6 +187,9 @@ export default function LeaderboardTable({
               >
                 <div className="flex items-center gap-2">
                   <span>{metric.label}</span>
+                  <span className="rounded-full bg-white/15 px-1.5 py-0.5 text-[10px] font-medium tabular-nums">
+                    {Math.round(metric.weight * 100)}%
+                  </span>
                   {metric.unit && (
                     <span className="text-xs opacity-75">({metric.unit})</span>
                   )}
@@ -206,6 +209,27 @@ export default function LeaderboardTable({
                 </div>
               </th>
             ))}
+            <th
+              className="cursor-pointer px-6 py-4 text-left font-semibold transition-colors hover:bg-white/10"
+              onClick={() => handleSort("totalScore")}
+            >
+              <div className="flex items-center gap-2">
+                <span>Total Score</span>
+                {sortKey === "totalScore" && (
+                  <motion.div
+                    initial={{ scale: 0 }}
+                    animate={{ scale: 1 }}
+                    className="text-yellow-300"
+                  >
+                    {sortAscending ? (
+                      <ArrowUp size={16} />
+                    ) : (
+                      <ArrowDown size={16} />
+                    )}
+                  </motion.div>
+                )}
+              </div>
+            </th>
             <th
               className="cursor-pointer px-6 py-4 text-left font-semibold transition-colors hover:bg-white/10"
               onClick={() => handleSort("submissionDate")}
@@ -322,6 +346,26 @@ export default function LeaderboardTable({
                       </td>
                     );
                   })}
+                  <td className="px-6 py-4">
+                    <div className="flex flex-col gap-1">
+                      <span className="text-lg font-bold">
+                        {entry.totalScore != null
+                          ? entry.totalScore.toFixed(1)
+                          : "—"}
+                      </span>
+                      <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-200 dark:bg-gray-700">
+                        <motion.div
+                          initial={{ width: 0 }}
+                          animate={{ width: "100%" }}
+                          transition={{ delay: index * 0.05 + 0.2 }}
+                          className="h-full rounded-full bg-gradient-to-r from-violet-400 to-indigo-600"
+                          style={{
+                            width: `${entry.totalScore ?? 0}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600 dark:text-gray-400">
                     {entry.submissionDate ? formatDate(entry.submissionDate) : "—"}
                   </td>

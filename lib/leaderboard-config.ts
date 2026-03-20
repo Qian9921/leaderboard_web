@@ -13,6 +13,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
         unit: "%",
         higherIsBetter: true,
         format: (v) => formatPercentageValue(v),
+        weight: 0.50,
       },
       {
         key: "dice_score",
@@ -20,6 +21,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
         unit: "%",
         higherIsBetter: true,
         format: (v) => formatPercentageValue(v),
+        weight: 0.35,
       },
       {
         key: "fwiou",
@@ -27,6 +29,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
         unit: "%",
         higherIsBetter: true,
         format: (v) => formatPercentageValue(v),
+        weight: 0.15,
       },
     ],
   },
@@ -41,6 +44,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
         unit: "m",
         higherIsBetter: false,
         format: (v) => formatNumber(v, 4),
+        weight: 0.50,
       },
       {
         key: "rpe_trans_drift_m_per_m",
@@ -48,6 +52,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
         unit: "m/m",
         higherIsBetter: false,
         format: (v) => formatNumber(v, 5),
+        weight: 0.20,
       },
       {
         key: "completeness_pct",
@@ -55,6 +60,7 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
         unit: "%",
         higherIsBetter: true,
         format: (v) => formatPercentageValue(v),
+        weight: 0.30,
       },
     ],
   },
