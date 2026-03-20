@@ -50,13 +50,6 @@ export const leaderboardConfigs: Record<string, LeaderboardConfig> = {
         format: (v) => formatNumber(v, 5),
       },
       {
-        key: "rpe_rot_drift_deg_per_100m",
-        label: "RPE Rot",
-        unit: "deg/100m",
-        higherIsBetter: false,
-        format: (v) => formatNumber(v, 5),
-      },
-      {
         key: "completeness_pct",
         label: "Completeness",
         unit: "%",

@@ -117,7 +117,6 @@ test("leaderboard payload normalizer accepts either a single entry or an array",
     groupName: "Example Team",
     ate_rmse_m: 1.2345,
     rpe_trans_drift_m_per_m: 0.01234,
-    rpe_rot_drift_deg_per_100m: 0.54321,
     completeness_pct: 98.76,
   };
 

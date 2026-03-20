@@ -32,7 +32,6 @@ CREATE TABLE orbslam3_submissions (
   github_username TEXT,
   ate_rmse_m                  REAL NOT NULL CHECK (ate_rmse_m >= 0),
   rpe_trans_drift_m_per_m     REAL NOT NULL CHECK (rpe_trans_drift_m_per_m >= 0),
-  rpe_rot_drift_deg_per_100m  REAL NOT NULL CHECK (rpe_rot_drift_deg_per_100m >= 0),
   completeness_pct            REAL NOT NULL CHECK (completeness_pct >= 0 AND completeness_pct <= 100),
   submitted_at    TIMESTAMPTZ NOT NULL DEFAULT now(),
   UNIQUE(dataset_key, group_name)
@@ -64,7 +63,7 @@ WHERE leaderboard_type = 'unet'
 -- ----------------------------------------------------------
 INSERT INTO orbslam3_submissions
   (dataset_key, group_name, project_private_repo_url, github_username,
-   ate_rmse_m, rpe_trans_drift_m_per_m, rpe_rot_drift_deg_per_100m, completeness_pct,
+   ate_rmse_m, rpe_trans_drift_m_per_m, completeness_pct,
    submitted_at)
 SELECT
   CASE
@@ -76,14 +75,12 @@ SELECT
   github_username,
   (metrics->>'ate_rmse_m')::REAL,
   (metrics->>'rpe_trans_drift_m_per_m')::REAL,
-  (metrics->>'rpe_rot_drift_deg_per_100m')::REAL,
   (metrics->>'completeness_pct')::REAL,
   COALESCE(submitted_at, now())
 FROM submissions
 WHERE leaderboard_type LIKE 'orbslam3%'
   AND metrics->>'ate_rmse_m'                 IS NOT NULL
   AND metrics->>'rpe_trans_drift_m_per_m'    IS NOT NULL
-  AND metrics->>'rpe_rot_drift_deg_per_100m' IS NOT NULL
   AND metrics->>'completeness_pct'           IS NOT NULL;
 
 -- ----------------------------------------------------------

@@ -14,7 +14,6 @@ test("mergeLeaderboardEntries marks remote rows as deletable submissions", () =>
       submissionDate: "2026-03-12T10:00:00.000Z",
       ate_rmse_m: 1.23,
       rpe_trans_drift_m_per_m: 0.01,
-      rpe_rot_drift_deg_per_100m: 0.45,
       completeness_pct: 98.7,
     },
   ];
@@ -32,7 +31,6 @@ test("mergeLeaderboardEntries marks seed rows as non-deletable when no remote ov
       groupName: "Static Seed (AMtown01)",
       ate_rmse_m: 999.1234,
       rpe_trans_drift_m_per_m: 9.87654,
-      rpe_rot_drift_deg_per_100m: 999.54321,
       completeness_pct: 12.34,
     },
   ];
@@ -50,7 +48,6 @@ test("mergeLeaderboardEntries prefers remote submissions over seed rows with the
       groupName: "Same Team",
       ate_rmse_m: 999.1234,
       rpe_trans_drift_m_per_m: 9.87654,
-      rpe_rot_drift_deg_per_100m: 999.54321,
       completeness_pct: 12.34,
     },
   ];
@@ -60,7 +57,6 @@ test("mergeLeaderboardEntries prefers remote submissions over seed rows with the
       submissionDate: "2026-03-12T10:00:00.000Z",
       ate_rmse_m: 1.23,
       rpe_trans_drift_m_per_m: 0.01,
-      rpe_rot_drift_deg_per_100m: 0.45,
       completeness_pct: 98.7,
     },
   ];

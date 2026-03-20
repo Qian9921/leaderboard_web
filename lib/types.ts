@@ -23,7 +23,6 @@ export interface UNetEntry extends BaseLeaderboardEntry {
 export interface OrbSlam3Entry extends BaseLeaderboardEntry {
   ate_rmse_m: number;                  // Absolute Trajectory Error RMSE (lower is better)
   rpe_trans_drift_m_per_m: number;     // RPE Translation Drift (lower is better)
-  rpe_rot_drift_deg_per_100m: number;  // RPE Rotation Drift (lower is better)
   completeness_pct: number;            // Completeness % (higher is better)
 }
 

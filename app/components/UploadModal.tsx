@@ -241,7 +241,6 @@ async function upsertSubmissionToSupabase(
     github_username: submission.githubUsername ?? null,
     ate_rmse_m: submission.metrics.ate_rmse_m,
     rpe_trans_drift_m_per_m: submission.metrics.rpe_trans_drift_m_per_m,
-    rpe_rot_drift_deg_per_100m: submission.metrics.rpe_rot_drift_deg_per_100m,
     completeness_pct: submission.metrics.completeness_pct,
   };
 
@@ -307,7 +306,7 @@ function buildUploadPlaceholder(
   leaderboardType: LeaderboardType
 ): string {
   if (leaderboardType === "orbslam3") {
-    return `{\n  \"group_name\": \"Team Alpha\",\n  \"project_private_repo_url\": \"https://github.com/yourusername/project.git\",\n  \"metrics\": {\n    \"ate_rmse_m\": 88.2281,\n    \"rpe_trans_drift_m_per_m\": 2.04084,\n    \"rpe_rot_drift_deg_per_100m\": 76.69911,\n    \"completeness_pct\": 95.73\n  }\n}`;
+    return `{\n  \"group_name\": \"Team Alpha\",\n  \"project_private_repo_url\": \"https://github.com/yourusername/project.git\",\n  \"metrics\": {\n    \"ate_rmse_m\": 88.2281,\n    \"rpe_trans_drift_m_per_m\": 2.04084,\n    \"completeness_pct\": 95.73\n  }\n}`;
   }
 
   return `{\n  \"group_name\": \"Team Alpha\",\n  \"project_private_repo_url\": \"https://github.com/yourusername/project.git\",\n  \"metrics\": {\n    \"miou\": 72.73,\n    \"dice_score\": 39.80,\n    \"fwiou\": 88.85\n  }\n}`;

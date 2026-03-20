@@ -298,7 +298,7 @@ async function fetchRemoteEntries(
     const { data, error } = await supabase
       .from("orbslam3_submissions")
       .select(
-        "group_name, project_private_repo_url, github_username, ate_rmse_m, rpe_trans_drift_m_per_m, rpe_rot_drift_deg_per_100m, completeness_pct, submitted_at"
+        "group_name, project_private_repo_url, github_username, ate_rmse_m, rpe_trans_drift_m_per_m, completeness_pct, submitted_at"
       )
       .eq("dataset_key", orbslamDatasetKey);
 
@@ -311,7 +311,6 @@ async function fetchRemoteEntries(
       submissionDate: row.submitted_at,
       ate_rmse_m: row.ate_rmse_m,
       rpe_trans_drift_m_per_m: row.rpe_trans_drift_m_per_m,
-      rpe_rot_drift_deg_per_100m: row.rpe_rot_drift_deg_per_100m,
       completeness_pct: row.completeness_pct,
     }));
   } catch (error) {
