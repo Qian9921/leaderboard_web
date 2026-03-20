@@ -9,7 +9,6 @@ import { leaderboardConfigs } from "@/lib/leaderboard-config";
 import { getSupabaseClient } from "@/lib/supabase";
 import {
   DEFAULT_ORBSLAM_DATASET,
-  getOrbslamSubmissionScope,
   type OrbslamDatasetKey,
 } from "@/lib/orbslam-datasets";
 
@@ -216,32 +215,41 @@ async function upsertSubmissionToSupabase(
   orbslamDatasetKey?: OrbslamDatasetKey
 ) {
   const supabase = getSupabaseClient();
-  const config = leaderboardConfigs[leaderboardType];
-  const submissionScope =
-    leaderboardType === "orbslam3"
-      ? getOrbslamSubmissionScope(orbslamDatasetKey ?? DEFAULT_ORBSLAM_DATASET)
-      : leaderboardType;
 
-  const metrics: Record<string, number> = {};
-  for (const metric of config.metrics) {
-    metrics[metric.key] = submission.metrics[metric.key];
+  if (leaderboardType === "unet") {
+    const payload = {
+      group_name: submission.groupName,
+      project_private_repo_url: submission.projectPrivateRepoUrl,
+      github_username: submission.githubUsername ?? null,
+      miou: submission.metrics.miou,
+      dice_score: submission.metrics.dice_score,
+      fwiou: submission.metrics.fwiou,
+    };
+
+    const { error } = await supabase
+      .from("unet_submissions")
+      .upsert(payload, { onConflict: "group_name" });
+
+    if (error) throw error;
+    return;
   }
 
   const payload = {
-    leaderboard_type: submissionScope,
+    dataset_key: orbslamDatasetKey ?? DEFAULT_ORBSLAM_DATASET,
     group_name: submission.groupName,
     project_private_repo_url: submission.projectPrivateRepoUrl,
     github_username: submission.githubUsername ?? null,
-    metrics,
+    ate_rmse_m: submission.metrics.ate_rmse_m,
+    rpe_trans_drift_m_per_m: submission.metrics.rpe_trans_drift_m_per_m,
+    rpe_rot_drift_deg_per_100m: submission.metrics.rpe_rot_drift_deg_per_100m,
+    completeness_pct: submission.metrics.completeness_pct,
   };
 
   const { error } = await supabase
-    .from("submissions")
-    .upsert(payload, { onConflict: "leaderboard_type,group_name" });
+    .from("orbslam3_submissions")
+    .upsert(payload, { onConflict: "dataset_key,group_name" });
 
-  if (error) {
-    throw error;
-  }
+  if (error) throw error;
 }
 
 function parseAndValidateSubmission(jsonString: string, leaderboardType: LeaderboardType) {

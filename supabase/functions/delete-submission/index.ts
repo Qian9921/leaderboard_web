@@ -42,11 +42,13 @@ serve(async (req) => {
     }
 
     const supabase = createClient(config.supabaseUrl, config.serviceRoleKey);
-    const { error } = await supabase
-      .from("submissions")
-      .delete()
-      .eq("leaderboard_type", leaderboard_type)
-      .eq("group_name", group_name);
+
+    const { table, datasetKey } = resolveTable(leaderboard_type);
+    let query = supabase.from(table).delete().eq("group_name", group_name);
+    if (datasetKey) {
+      query = query.eq("dataset_key", datasetKey);
+    }
+    const { error } = await query;
 
     if (error) {
       return new Response(
@@ -69,3 +71,24 @@ serve(async (req) => {
   }
 });
 
+function resolveTable(leaderboardType: string): {
+  table: string;
+  datasetKey?: string;
+} {
+  if (leaderboardType === "unet") {
+    return { table: "unet_submissions" };
+  }
+
+  if (leaderboardType === "orbslam3") {
+    return { table: "orbslam3_submissions", datasetKey: "AMtown02" };
+  }
+
+  if (leaderboardType.startsWith("orbslam3:")) {
+    return {
+      table: "orbslam3_submissions",
+      datasetKey: leaderboardType.slice("orbslam3:".length),
+    };
+  }
+
+  throw new Error(`Unknown leaderboard type: ${leaderboardType}`);
+}

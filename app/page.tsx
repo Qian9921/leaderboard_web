@@ -21,7 +21,6 @@ import { getSupabaseClient } from "@/lib/supabase";
 import {
   DEFAULT_ORBSLAM_DATASET,
   getOrbslamDataUrl,
-  getOrbslamSubmissionScope,
   type OrbslamDatasetKey,
 } from "@/lib/orbslam-datasets";
 
@@ -275,28 +274,46 @@ async function fetchRemoteEntries(
 ): Promise<LeaderboardEntry[]> {
   try {
     const supabase = getSupabaseClient();
-    const submissionScope =
-      type === "orbslam3"
-        ? getOrbslamSubmissionScope(orbslamDatasetKey)
-        : type;
-    const { data, error } = await supabase
-      .from("submissions")
-      .select(
-        "leaderboard_type, group_name, project_private_repo_url, github_username, metrics, submitted_at"
-      )
-      .eq("leaderboard_type", submissionScope);
 
-    if (error) {
-      throw error;
+    if (type === "unet") {
+      const { data, error } = await supabase
+        .from("unet_submissions")
+        .select(
+          "group_name, project_private_repo_url, github_username, miou, dice_score, fwiou, submitted_at"
+        );
+
+      if (error) throw error;
+
+      return (data ?? []).map((row: any) => ({
+        groupName: row.group_name,
+        projectPrivateRepoUrl: row.project_private_repo_url,
+        githubUsername: row.github_username,
+        submissionDate: row.submitted_at,
+        miou: row.miou,
+        dice_score: row.dice_score,
+        fwiou: row.fwiou,
+      }));
     }
+
+    const { data, error } = await supabase
+      .from("orbslam3_submissions")
+      .select(
+        "group_name, project_private_repo_url, github_username, ate_rmse_m, rpe_trans_drift_m_per_m, rpe_rot_drift_deg_per_100m, completeness_pct, submitted_at"
+      )
+      .eq("dataset_key", orbslamDatasetKey);
+
+    if (error) throw error;
 
     return (data ?? []).map((row: any) => ({
       groupName: row.group_name,
       projectPrivateRepoUrl: row.project_private_repo_url,
       githubUsername: row.github_username,
       submissionDate: row.submitted_at,
-      ...(row.metrics ?? {}),
-    })) as LeaderboardEntry[];
+      ate_rmse_m: row.ate_rmse_m,
+      rpe_trans_drift_m_per_m: row.rpe_trans_drift_m_per_m,
+      rpe_rot_drift_deg_per_100m: row.rpe_rot_drift_deg_per_100m,
+      completeness_pct: row.completeness_pct,
+    }));
   } catch (error) {
     console.warn("Supabase remote fetch disabled:", error);
     return [];
